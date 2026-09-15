@@ -14,8 +14,8 @@
 #
 set -e
 
-SCRIPT_DIR=$(dirname $(readlink -f $0))
-source $SCRIPT_DIR/config/install_common.sh
+SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
+source "$SCRIPT_DIR/config/install_common.sh"
 
 PURGE=false
 UPDATE_CONFIG=true

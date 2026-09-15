@@ -12,7 +12,7 @@
 #
 set -e
 
-SCRIPT_DIR=$(dirname $(readlink -f $0))
+SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
 
 INSTALL_PACKAGES=true
 INITIALIZE_DATABASE=true
@@ -50,15 +50,15 @@ for ARGUMENT in "$@"; do
     esac
 done
 
-source $SCRIPT_DIR/config/setup_config.env
+source "$SCRIPT_DIR/config/setup_config.env"
 
 if [[ "$(whoami)" != "$BM_USER" ]]; then
     echo "Error: this script must be run by user $BM_USER"
     exit 1
 fi
 
-BM_ENV_EXPORTS_PATH=$SCRIPT_DIR/env/envvar_exports
-BM_ENV_PATH=$SCRIPT_DIR/env/envvars
+BM_ENV_EXPORTS_PATH="$SCRIPT_DIR/env/envvar_exports"
+BM_ENV_PATH="$SCRIPT_DIR/env/envvars"
 
 if [[ ! -f "$BM_ENV_EXPORTS_PATH" ]]; then
     echo "Error: $BM_ENV_EXPORTS_PATH not found"
@@ -67,7 +67,7 @@ if [[ ! -f "$BM_ENV_EXPORTS_PATH" ]]; then
 fi
 
 # Defines BM_DIR and the other paths and permissions the installation uses
-source $BM_ENV_EXPORTS_PATH
+source "$BM_ENV_EXPORTS_PATH"
 
 if [[ "$BM_DIR" != "$SCRIPT_DIR" ]]; then
     echo "Error: the installed baby monitor is in $BM_DIR, but this script is in $SCRIPT_DIR"

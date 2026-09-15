@@ -79,16 +79,16 @@ In order to fit the Mini USB Microphone next to the Micro USB power plug on a Pi
 
 ### Adding the optional features to an existing installation
 
-The VOX mode, the recording with its timeline and the virtual fence are all included when the baby monitor is installed from scratch. If you are updating a baby monitor that was installed before they existed, connect to the Pi with SSH and run the installer for the ones you want:
+The VOX mode, the recording with its timeline and the virtual fence are all included when the baby monitor is installed from scratch. If you are updating a baby monitor that was installed before they existed, connect to the Pi with SSH and install them all in one go:
 
 ```
 cd ~/OpenBabyMonitor
 git pull
 chmod +x install_*.sh uninstall_*.sh
-./install_vox.sh
-./install_recording.sh
-./install_fence.sh
+./install_all.sh
 ```
+
+`install_all.sh` does the shared work once and then runs the individual installers, which you can also run on their own:
 
 | Script | Adds |
 | ------ | ---- |
@@ -96,12 +96,12 @@ chmod +x install_*.sh uninstall_*.sh
 | `install_recording.sh` | The [recording and the timeline](#recording-and-the-timeline): a place to keep the recordings, a `recording_settings` table and the event log |
 | `install_fence.sh` | The [virtual fence](#the-virtual-fence): a `fence_settings` table and the event log |
 
-Each script only adds what its own feature needs and leaves the rest of your installation and all your existing settings alone. They can safely be run again, for instance after a later update. All of them take `--no-packages` if the Pi has no internet access, and each has a matching `uninstall_*.sh` that takes `--purge` when you also want the stored settings and data gone.
+Each script only adds what its own feature needs and leaves the rest of your installation and all your existing settings alone. They can safely be run again, for instance after a later update, and a feature that fails to install does not stop the others. All of them take `--no-packages` if the Pi has no internet access, and each has a matching `uninstall_*.sh`, including `uninstall_all.sh`, that takes `--purge` when you also want the stored settings and data gone.
 
-To keep the recordings somewhere other than the memory card, point the installer at another location, for instance a USB drive:
+To keep the recordings somewhere other than the memory card, point the installer at another location, for instance a USB drive, and use `--without` to leave a feature out:
 
 ```
-./install_recording.sh --dir /media/usb/babymonitor
+./install_all.sh --dir /media/usb/babymonitor --without fence
 ```
 
 ## The web application
