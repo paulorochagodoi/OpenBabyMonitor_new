@@ -355,7 +355,14 @@ def run_vox_with_settings(config,
 
     try:
         if audio_recorder is not None:
-            audio_recorder.start()
+            try:
+                audio_recorder.start()
+            except Exception as exception:
+                # Recording is secondary to transmitting, so a problem with it
+                # must never take the mode down
+                audio_recorder.log(
+                    f'Could not start the recording: {exception}')
+                audio_recorder = None
 
         with capture:
             control.signal_mode_started(MODE)

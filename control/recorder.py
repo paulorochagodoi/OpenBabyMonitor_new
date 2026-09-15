@@ -37,6 +37,17 @@ VIDEO_SUBDIR = 'video'
 AUDIO_SUBDIR = 'audio'
 
 
+def remove_file(path):
+    """
+    Deletes a file, ignoring it already being gone. Path.unlink has a missing_ok
+    argument for this, but only from Python 3.8, and the device runs 3.7.
+    """
+    try:
+        path.unlink()
+    except OSError:
+        pass
+
+
 def get_recording_dir():
     return pathlib.Path(
         os.environ.get('BM_RECORDING_DIR',
@@ -162,7 +173,7 @@ class RollingRecorder:
         if not self.playlist_path.exists():
             # Segments without a playlist can never be played back
             for path in self.archive_dir.glob('seg_*.ts'):
-                path.unlink(missing_ok=True)
+                remove_file(path)
             return 0
 
         try:
@@ -193,7 +204,7 @@ class RollingRecorder:
         # Segments left behind by an interrupted recording are never played
         for path in self.archive_dir.glob('seg_*.ts'):
             if path.name not in listed_segments:
-                path.unlink(missing_ok=True)
+                remove_file(path)
 
         return next_segment_number
 

@@ -77,7 +77,14 @@ def stream_audio_with_settings(recording_settings=None,
                 stream_recorder = recorder.create_audio_stream_recorder(
                     recording_settings, output_file, log_path=log_path)
                 if stream_recorder is not None:
-                    stream_recorder.start()
+                    try:
+                        stream_recorder.start()
+                    except Exception as exception:
+                        # Recording is secondary to streaming the audio, so a
+                        # problem with it must never take the mode down
+                        stream_recorder.log(
+                            f'Could not start the recording: {exception}')
+                        stream_recorder = None
 
             return_code = stream_process.wait()
             if return_code != 0:
