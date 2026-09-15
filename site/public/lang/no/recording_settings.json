@@ -1,0 +1,15 @@
+{
+    "recording_settings": "Opptaksinnstillinger",
+    "recording_settings_description": "Enheten holder et rullerende opptak av det den fanger opp mens den er i varsle-, VOX- eller se-modus. Når opptaket når lengden som er satt her, slettes den eldste delen etter hvert som nytt materiale kommer til, så det fyller aldri opp kortet. Det som er tatt opp kan spilles av fra tidslinjen.",
+    "recording_card_warning": "Opptak skriver til minnekortet hele tiden, noe som sliter det ut over tid. Hold lengden på det du faktisk trenger, og bruk et kort av god kvalitet.",
+    "submit": "Bekreft",
+    "g_recording_what": "Hva som tas opp",
+    "g_storage": "Lagring",
+    "g_events": "Hendelser",
+    "recording_enabled": "Ta opp automatisk",
+    "record_video": "Ta opp video med kameraet",
+    "record_audio": "Ta opp lyd",
+    "retention_minutes": "Behold de siste (min)",
+    "min_free_space": "Stopp når ledig plass er under (MB)",
+    "event_retention_hours": "Behold hendelser i (t)"
+}

@@ -208,3 +208,9 @@ bootstrap-icons.svg
 
 *.npz
 *.bin
+
+### OpenBabyMonitor ###
+# Recordings made on the device
+/recordings/
+# Backups the uninstallers keep
+config/config.json.bak

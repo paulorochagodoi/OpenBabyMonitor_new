@@ -1,0 +1,15 @@
+{
+    "recording_settings": "Configurações de gravação",
+    "recording_settings_description": "O dispositivo mantém uma gravação contínua do que captura enquanto está nos modos avisar, VOX ou ver. Quando a gravação chega à duração definida aqui, a parte mais antiga vai sendo apagada conforme entra material novo, então ela nunca enche o cartão. O que foi gravado pode ser reproduzido pela linha do tempo.",
+    "recording_card_warning": "A gravação escreve no cartão de memória o tempo todo, o que o desgasta com o passar do tempo. Mantenha a duração no mínimo que você realmente precisa e use um cartão de boa qualidade.",
+    "submit": "Confirmar",
+    "g_recording_what": "O que gravar",
+    "g_storage": "Armazenamento",
+    "g_events": "Eventos",
+    "recording_enabled": "Gravar automaticamente",
+    "record_video": "Gravar vídeo com a câmera",
+    "record_audio": "Gravar áudio",
+    "retention_minutes": "Manter os últimos (min)",
+    "min_free_space": "Parar quando o espaço livre for menor que (MB)",
+    "event_retention_hours": "Manter eventos por (h)"
+}

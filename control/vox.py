@@ -28,6 +28,8 @@ sys.path.append(os.path.join(os.environ['BM_DIR'], 'detection'))
 import features
 import control
 import mic
+import events
+import recorder
 
 MODE = 'vox'
 
@@ -255,13 +257,29 @@ class HLSAudioTransmitter:
 
 
 def run_vox():
-    control.enter_mode(
-        MODE, lambda mode, config, database: run_vox_with_settings(
-            config, control.read_settings(mode, config, database),
-            control.read_settings('audiostream', config, database)))
+    control.enter_mode(MODE, run_vox_mode)
 
 
-def run_vox_with_settings(config, vox_settings, audiostream_settings):
+def run_vox_mode(mode, config, database):
+    log_path = os.environ.get('BM_SERVER_LOG_PATH')
+    recording_settings = control.read_settings_if_available(
+        'recording', config, database)
+    run_vox_with_settings(
+        config,
+        control.read_settings(mode, config, database),
+        control.read_settings('audiostream', config, database),
+        recording_settings=recording_settings,
+        event_log=events.create_event_log(config,
+                                          database,
+                                          recording_settings,
+                                          log_path=log_path))
+
+
+def run_vox_with_settings(config,
+                          vox_settings,
+                          audiostream_settings,
+                          recording_settings=None,
+                          event_log=None):
     comm_dir = pathlib.Path(os.environ['BM_DIR']) / 'control' / '.comm'
     state_file = comm_dir / 'vox_state.json'
     level_file = comm_dir / 'vox_level.dat'
@@ -286,12 +304,12 @@ def run_vox_with_settings(config, vox_settings, audiostream_settings):
         max(extractor.fft_length, int(ANALYSIS_BLOCK_DURATION *
                                       sampling_rate)))
 
-    recorder = features.ContinuousRecorder(mic.get_audio_device(),
-                                           sampling_rate=sampling_rate,
-                                           block_samples=block_samples,
-                                           output_format=SAMPLE_FORMAT,
-                                           log_path=log_path)
-    block_duration = recorder.block_duration
+    capture = features.ContinuousRecorder(mic.get_audio_device(),
+                                          sampling_rate=sampling_rate,
+                                          block_samples=block_samples,
+                                          output_format=SAMPLE_FORMAT,
+                                          log_path=log_path)
+    block_duration = capture.block_duration
 
     analyzer = features.LoudnessAnalyzer(
         background_loudness_level_offset=float(
@@ -314,6 +332,13 @@ def run_vox_with_settings(config, vox_settings, audiostream_settings):
                                       encrypted=encrypted,
                                       log_path=log_path)
 
+    # The recording covers the whole time the mode is active, not just the
+    # moments when something is being transmitted
+    audio_recorder = recorder.create_audio_recorder(recording_settings,
+                                                    sampling_rate=sampling_rate,
+                                                    mp3_bitrate=mp3_bitrate,
+                                                    log_path=log_path)
+
     pre_roll = collections.deque(
         maxlen=max(1, int(round(PRE_ROLL_DURATION / block_duration))))
 
@@ -329,13 +354,16 @@ def run_vox_with_settings(config, vox_settings, audiostream_settings):
     register_termination_handler()
 
     try:
-        with recorder:
+        if audio_recorder is not None:
+            audio_recorder.start()
+
+        with capture:
             control.signal_mode_started(MODE)
             write_status(state_file, state, 0.0, 0.0, activation_threshold,
                          time.time())
 
             while True:
-                block = recorder.read_block()
+                block = capture.read_block()
                 if block is None:
                     raise RuntimeError(
                         'Audio capture ended unexpectedly, is the microphone still connected?'
@@ -352,6 +380,9 @@ def run_vox_with_settings(config, vox_settings, audiostream_settings):
                     transmitter.write(raw_block)
                 else:
                     pre_roll.append(raw_block)
+
+                if audio_recorder is not None:
+                    audio_recorder.write(raw_block)
 
                 block_count += 1
                 now = time.time()
@@ -373,6 +404,9 @@ def run_vox_with_settings(config, vox_settings, audiostream_settings):
                                 >= min_notification_interval)
                             if notify:
                                 last_notification_time = now
+                            if event_log is not None:
+                                event_log.add(events.TRANSMISSION,
+                                              sound_contrast, now)
                         else:
                             transmitter.stop()
                             state = STATE_ARMED
@@ -406,6 +440,8 @@ def run_vox_with_settings(config, vox_settings, audiostream_settings):
                     last_level_report_time = now
     finally:
         transmitter.stop()
+        if audio_recorder is not None:
+            audio_recorder.stop()
 
 
 def create_feature_extractor(config, sampling_rate):

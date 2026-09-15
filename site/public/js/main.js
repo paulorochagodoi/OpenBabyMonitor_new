@@ -230,8 +230,10 @@ function setVisibleContent(visibleContentId) {
     if (USES_CAMERA) {
         if (visibleContentId == MODE_CONTENT_VIDEO_ID) {
             enableVideoStreamPlayer();
+            initializeFenceMonitoring();
         } else {
             disableVideoStreamPlayer();
+            deactivateFenceMonitoring();
         }
     }
     MODE_CONTENT_IDS.forEach(contentId => {

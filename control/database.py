@@ -54,6 +54,41 @@ class Database:
         self.cursor.execute('UPDATE `{}` SET {} WHERE {};'.format(
             table_name, updates, condition))
 
+    def table_exists(self, table_name):
+        self.cursor.execute('SHOW TABLES LIKE %s;', (table_name, ))
+        return len(self.cursor.fetchall()) > 0
+
+    def insert_values_into_table(self, table_name, column_values):
+        names = ', '.join('`{}`'.format(name) for name in column_values)
+        placeholders = ', '.join(['%s'] * len(column_values))
+        self.cursor.execute(
+            'INSERT INTO `{}` ({}) VALUES ({});'.format(
+                table_name, names, placeholders),
+            tuple(column_values.values()))
+
+    def delete_rows_from_table(self, table_name, condition, parameters=()):
+        self.cursor.execute(
+            'DELETE FROM `{}` WHERE {};'.format(table_name, condition),
+            tuple(parameters))
+
+    def read_rows_from_table(self,
+                             table_name,
+                             columns,
+                             condition=None,
+                             parameters=(),
+                             order_by=None,
+                             limit=None):
+        column_string = '`{}`'.format('`, `'.join(columns))
+        query = 'SELECT {} FROM `{}`'.format(column_string, table_name)
+        if condition is not None:
+            query += ' WHERE {}'.format(condition)
+        if order_by is not None:
+            query += ' ORDER BY {}'.format(order_by)
+        if limit is not None:
+            query += ' LIMIT {:d}'.format(limit)
+        self.cursor.execute(query + ';', tuple(parameters))
+        return self.cursor.fetchall()
+
     def read_values_from_table(self, table_name, columns, condition='id = 0'):
         multiple_columns = hasattr(
             columns, '__iter__') and not isinstance(columns, str)

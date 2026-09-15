@@ -49,6 +49,8 @@ BM_CONTROL_MIC_ID_FILE=$BM_CONTROL_MIC_DIR/id
 BM_CONTROL_CAM_DIR=$BM_DIR/control/.cam
 BM_CONTROL_CAM_CONNECTED_FILE=$BM_CONTROL_CAM_DIR/connected
 BM_CONTROL_TIME_SYNCED_FILE=$BM_DIR/control/.time_synced
+BM_RECORDING_DIR=$BM_DIR/recordings
+BM_LINKED_RECORDING_DIR=$BM_LINKED_SITE_DIR/recordings
 
 SETUP_AUDIO=true
 if [[ "$SETUP_AUDIO" = true ]]; then
@@ -171,6 +173,7 @@ if [[ "$SETUP_ENV" = true ]]; then
     echo "export BM_CONTROL_MIC_ID_FILE=$BM_CONTROL_MIC_ID_FILE" >> $BM_ENV_EXPORTS_PATH
     echo "export BM_CONTROL_CAM_CONNECTED_FILE=$BM_CONTROL_CAM_CONNECTED_FILE" >> $BM_ENV_EXPORTS_PATH
     echo "export BM_CONTROL_TIME_SYNCED_FILE=$BM_CONTROL_TIME_SYNCED_FILE" >> $BM_ENV_EXPORTS_PATH
+    echo "export BM_RECORDING_DIR=$BM_RECORDING_DIR" >> $BM_ENV_EXPORTS_PATH
     echo "export BM_DEBUG=$BM_DEBUG" >> $BM_ENV_EXPORTS_PATH
 
     # Copy environment variables (without 'export') into environment file for services and PHP
@@ -497,6 +500,10 @@ _EOF_
     # Add main user to www-data group
     sudo adduser $BM_USER $BM_WEB_GROUP
 
+    # Create the place recordings are kept and make it reachable from the browser
+    sudo install -d -o $BM_USER -g $BM_WEB_GROUP -m $BM_READ_PERMISSIONS $BM_RECORDING_DIR{,/video,/audio}
+    sudo ln -sfn $BM_RECORDING_DIR $BM_LINKED_RECORDING_DIR
+
     # Create folders where the group has write permissions
     mkdir -p $BM_SERVER_ACTION_DIR $BM_MODE_LOCK_DIR $BM_COMM_DIR $BM_CONTROL_CAM_DIR
 
@@ -504,7 +511,7 @@ _EOF_
     touch $BM_MODE_LOCK_FILE
 
     # Make sure files to be watched in the comm directory exist
-    touch $BM_COMM_DIR/{sound_level.dat,probabilities.json,notification.txt,vox_state.json,vox_level.dat}
+    touch $BM_COMM_DIR/{sound_level.dat,probabilities.json,notification.txt,vox_state.json,vox_level.dat,event.json,fence.json}
 
     # Ensure permissions are correct in project folder
     sudo chmod -R $BM_READ_PERMISSIONS $BM_DIR

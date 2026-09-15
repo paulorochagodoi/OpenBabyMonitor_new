@@ -1,0 +1,15 @@
+{
+    "recording_settings": "Recording settings",
+    "recording_settings_description": "The device keeps a rolling recording of what it captures while it is in the notify, VOX or observe mode. Once the recording reaches the length set here, the oldest part is deleted as new material is added, so it never fills up the card. What was recorded can be played back from the timeline.",
+    "recording_card_warning": "Recording continuously writes to the memory card, which wears it out over time. Keep the length no longer than you actually need, and use a good quality card.",
+    "submit": "Confirm",
+    "g_recording_what": "What to record",
+    "g_storage": "Storage",
+    "g_events": "Events",
+    "recording_enabled": "Record automatically",
+    "record_video": "Record video with the camera",
+    "record_audio": "Record audio",
+    "retention_minutes": "Keep the last (min)",
+    "min_free_space": "Stop when free space is below (MB)",
+    "event_retention_hours": "Keep events for (h)"
+}

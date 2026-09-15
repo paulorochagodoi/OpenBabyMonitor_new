@@ -277,7 +277,17 @@ require_once(TEMPLATES_DIR . '/main.php');
           </div>
 
           <?php if (USES_CAMERA) { ?>
-            <div id="mode_content_video" class="h-100 px-0" <?php echo ($mode != MODE_VALUES['videostream']) ? HIDDEN_STYLE : ''; ?>>
+            <div id="mode_content_video" class="h-100 px-0 position-relative" <?php echo ($mode != MODE_VALUES['videostream']) ? HIDDEN_STYLE : ''; ?>>
+              <?php if (FENCE_AVAILABLE) { ?>
+                <div id="fence_status" style="position: absolute; top: 0.5rem; left: 0.75rem; z-index: 5; display: none;">
+                  <span id="fence_status_badge" class="badge bg-secondary d-inline-flex align-items-center">
+                    <svg class="bi me-1" style="height: 1em; width: 1em;" fill="currentColor">
+                      <use id="fence_status_icon" href="media/bootstrap-icons.svg#question-circle" />
+                    </svg>
+                    <span id="fence_status_text"></span>
+                  </span>
+                </div>
+              <?php } ?>
               <div id="mode_content_video_box" class="h-100">
               </div>
             </div>
@@ -429,6 +439,7 @@ require_once(TEMPLATES_DIR . '/main.php');
   <script src="js/audio_video.js"></script>
   <script src="js/audio.js"></script>
   <script src="js/vox.js"></script>
+  <script src="js/fence_status.js"></script>
   <?php if (USES_CAMERA) { ?>
     <script src="js/video.js"></script>
   <?php } ?>
