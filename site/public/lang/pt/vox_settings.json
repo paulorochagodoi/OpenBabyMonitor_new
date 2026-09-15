@@ -1,0 +1,18 @@
+{
+    "vox_settings": "Configurações do VOX",
+    "vox_settings_description": "No modo VOX o dispositivo escuta continuamente e começa a transmitir áudio sozinho assim que ouve alguma coisa, parando de novo depois de um período de silêncio. A qualidade do áudio vem das configurações de áudio.",
+    "submit": "Confirmar",
+    "activation_threshold": "Começar a transmitir acima de<br>(dB acima do fundo)",
+    "activation_time": "O som deve durar pelo menos (s)",
+    "release_margin": "Continuar transmitindo até<br>(dB abaixo do nível de início)",
+    "hang_time": "Parar após silêncio de (s)",
+    "background_loudness_level_offset": "Ajuste do nível de som de<br>fundo informado (dB)",
+    "min_transmission_time": "Transmissão mais curta (s)",
+    "max_transmission_time": "Transmissão mais longa<br>(s, 0 significa sem limite)",
+    "notify_on_activation": "Avisar quando a transmissão começar",
+    "min_notification_interval": "Permitir novo aviso depois de (s)",
+    "autoplay_on_activation": "Reproduzir áudio automaticamente",
+    "g_detection": "Detecção de som",
+    "g_transmission": "Transmissão",
+    "g_notifications": "Aviso"
+}

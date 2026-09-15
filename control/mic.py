@@ -31,7 +31,7 @@ def select_mic(auto_choice=False):
 
 def select_mic_id(auto_choice=False):
     output = subprocess.check_output(['arecord', '-l'], text=True)
-    matches = re.findall('^card (\d+): (.*), device (\d): (.*)$',
+    matches = re.findall(r'^card (\d+): (.*), device (\d): (.*)$',
                          output,
                          flags=re.MULTILINE)
 
@@ -85,7 +85,7 @@ def select_mic_volume_control(sound_card_number, auto_choice=False):
     output = subprocess.check_output(['amixer', '-c', sound_card_number],
                                      text=True)
 
-    matches = re.findall('^.+ \'(.+)\',\d+$\n^  Capabilities: .*c?volume.*$',
+    matches = re.findall(r"^.+ '(.+)',\d+$\n^  Capabilities: .*c?volume.*$",
                          output,
                          flags=re.MULTILINE)
 
@@ -140,6 +140,14 @@ def get_mic_id():
 def get_mic_sound_card_number():
     mic_id = get_mic_id()
     return None if mic_id is None else mic_id[3:].split(',')[0]
+
+
+def get_audio_device():
+    """
+    The ALSA device to record from, wrapped in the plug plugin so sample rates
+    and formats not supported by the hardware are converted automatically.
+    """
+    return 'plug{}'.format(get_mic_id())
 
 
 def set_manually_selected_mic(manually_selected_mic):

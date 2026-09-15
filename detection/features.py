@@ -123,7 +123,7 @@ class AudioFeatureExtractor:
 
     def convert_waveform(self, waveform):
         dtype = waveform.dtype
-        converted_waveform = np.asfarray(waveform, dtype=self.dtype)
+        converted_waveform = np.asarray(waveform, dtype=self.dtype)
         if dtype.kind == 'i':
             converted_waveform /= -float(np.iinfo(dtype).min)
         elif dtype.kind == 'u':
@@ -202,17 +202,20 @@ class AudioFeatureExtractor:
             fmin=self.min_frequency,
             fmax=self.max_frequency)
 
-    def compute_mel_spectrogram_python_speech_features(self,
-                                                       waveform,
-                                                       return_spectrogram=False
-                                                       ):
+    def compute_spectrogram(self, waveform):
         frames = self.python_speech_features.sigproc.framesig(
             waveform,
             self.window_length,
             self.window_separation,
             winfunc=self.hann_window)
-        spectrogram = self.python_speech_features.sigproc.magspec(
+        return self.python_speech_features.sigproc.magspec(
             frames, self.fft_length).T
+
+    def compute_mel_spectrogram_python_speech_features(self,
+                                                       waveform,
+                                                       return_spectrogram=False
+                                                       ):
+        spectrogram = self.compute_spectrogram(waveform)
         mel_spectrogram = np.dot(self.mel_filterbank, spectrogram)
         if return_spectrogram:
             return mel_spectrogram, spectrogram
@@ -240,6 +243,10 @@ class AudioFeatureExtractor:
     def compute_loudness(self, spectrogram):
         return librosa_destilled.spectrogram_rms(
             self.compute_A_weighted_spectrogram(spectrogram)).squeeze()
+
+    def compute_loudness_of_waveform(self, waveform):
+        # Requires the python_speech_features backend and a preceding call to create_A_weights
+        return self.compute_loudness(self.compute_spectrogram(waveform))
 
     def create_A_weights(self):
         frequencies = librosa_destilled.fft_frequencies(
@@ -453,6 +460,90 @@ class Recorder:
             self.amplification)
 
 
+class ContinuousRecorder:
+    """
+    Records from an ALSA device using a single long running arecord process and
+    hands out the captured audio in fixed size blocks.
+
+    Unlike `Recorder`, which starts a new process for every recording, this keeps
+    the capture stream open, so no audio is lost in between blocks. This makes it
+    possible to analyze and forward the exact same audio samples.
+    """
+    def __init__(self,
+                 device,
+                 sampling_rate=8000,
+                 block_samples=4096,
+                 output_format='S16_LE',
+                 log_path=None):
+        self.device = device
+        self.sampling_rate = sampling_rate
+        self.block_samples = block_samples
+        self.output_format = output_format
+        self.log_path = log_path
+
+        self.interpreter = AudioByteInterpreter(output_format=output_format)
+        self.block_bytes = self.interpreter.compute_n_bytes(block_samples)
+
+        self.arecord_args = [
+            'arecord',
+            f'--device={device}',
+            '--quiet',
+            '--file-type',
+            'raw',
+            f'--format={output_format}',
+            f'--rate={sampling_rate:d}',
+            '--channels=1',
+        ]
+
+        self.process = None
+        self.log_file = None
+
+    @property
+    def block_duration(self):
+        return self.block_samples / self.sampling_rate
+
+    def __enter__(self):
+        self.start()
+        return self
+
+    def __exit__(self, *args):
+        self.stop()
+
+    def start(self):
+        if self.process is not None:
+            return
+        self.log_file = open(self.log_path,
+                             'a') if self.log_path else subprocess.DEVNULL
+        self.process = subprocess.Popen(self.arecord_args,
+                                        stdout=subprocess.PIPE,
+                                        stderr=self.log_file)
+
+    def stop(self):
+        if self.process is not None:
+            self.process.terminate()
+            try:
+                self.process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                self.process.kill()
+                self.process.wait()
+            self.process = None
+        if self.log_file is not None and self.log_file is not subprocess.DEVNULL:
+            self.log_file.close()
+        self.log_file = None
+
+    def read_block(self):
+        """
+        Reads the next block of audio, returning the raw bytes, the samples and the
+        time at the middle of the block, or None if the capture stream ended.
+        """
+        assert self.process is not None, 'Recorder has not been started'
+        raw_block = self.process.stdout.read(self.block_bytes)
+        if raw_block is None or len(raw_block) < self.block_bytes:
+            return None
+        record_time = time.time() - 0.5 * self.block_duration
+        return raw_block, self.interpreter(raw_block), record_time
+
+
 class LoudnessAnalyzer:
     def __init__(
             self,
@@ -476,11 +567,15 @@ class LoudnessAnalyzer:
     def add_loudness(self, loudness):
         loudness.sort()
 
-        n_foreground_loudnesses = int(self.foreground_fraction * loudness.size)
+        # At least one sample must be included, otherwise the slices below would
+        # cover the whole array (foreground) or nothing at all (background)
+        n_foreground_loudnesses = max(
+            1, int(self.foreground_fraction * loudness.size))
         foreground_loudness = np.mean(loudness[-n_foreground_loudnesses:])
         self.add_foreground_loudness(foreground_loudness)
 
-        n_background_loudnesses = int(self.background_fraction * loudness.size)
+        n_background_loudnesses = max(
+            1, int(self.background_fraction * loudness.size))
         background_loudness = np.mean(loudness[:n_background_loudnesses])
         self.add_background_loudness(background_loudness)
 

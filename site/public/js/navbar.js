@@ -2,6 +2,7 @@ const NAVBAR_ID = 'navbar';
 const TITLE_NAV_LINK_ID = 'title_nav_link';
 const MODES_NAV_LINK_ID = 'modes_nav_link';
 const LISTEN_SETTINGS_NAV_LINK_ID = 'listen_settings_nav_link';
+const VOX_SETTINGS_NAV_LINK_ID = 'vox_settings_nav_link';
 const AUDIOSTREAM_SETTINGS_NAV_LINK_ID = 'audiostream_settings_nav_link';
 const VIDEOSTREAM_SETTINGS_NAV_LINK_ID = 'videostream_settings_nav_link';
 const NETWORK_SETTINGS_NAV_LINK_ID = 'network_settings_nav_link';
@@ -13,6 +14,7 @@ const AP_MODE_SWITCH_ID = 'ap_mode_switch';
 
 const MODES_MODAL_BASE_PROPERTIES = { href: 'main.php', header: LANG['nav_want_to_leave_site'], confirm: LANG['nav_continue'], dismiss: LANG['cancel'] };
 const LISTEN_SETTINGS_MODAL_BASE_PROPERTIES = { href: 'listen_settings.php', header: LANG['nav_want_to_leave_site'], confirm: LANG['nav_continue'], dismiss: LANG['cancel'] };
+const VOX_SETTINGS_MODAL_BASE_PROPERTIES = { href: 'vox_settings.php', header: LANG['nav_want_to_leave_site'], confirm: LANG['nav_continue'], dismiss: LANG['cancel'] };
 const AUDIOSTREAM_SETTINGS_MODAL_BASE_PROPERTIES = { href: 'audiostream_settings.php', header: LANG['nav_want_to_leave_site'], confirm: LANG['nav_continue'], dismiss: LANG['cancel'] };
 const VIDEOSTREAM_SETTINGS_MODAL_BASE_PROPERTIES = { href: 'videostream_settings.php', header: LANG['nav_want_to_leave_site'], confirm: LANG['nav_continue'], dismiss: LANG['cancel'] };
 const NETWORK_SETTINGS_MODAL_BASE_PROPERTIES = { href: 'network_settings.php', header: LANG['nav_want_to_leave_site'], confirm: LANG['nav_continue'], dismiss: LANG['cancel'] };

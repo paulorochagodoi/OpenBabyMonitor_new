@@ -1,0 +1,18 @@
+{
+    "vox_settings": "VOX-innstillinger",
+    "vox_settings_description": "I VOX-modus lytter enheten kontinuerlig og begynner å sende lyd av seg selv så snart den hører noe, og stopper igjen etter en periode med stillhet. Lydkvaliteten hentes fra lydinnstillingene.",
+    "submit": "Bekreft",
+    "activation_threshold": "Begynn å sende over<br>(dB over bakgrunn)",
+    "activation_time": "Lyden må vare minst (s)",
+    "release_margin": "Fortsett å sende ned til<br>(dB under startnivået)",
+    "hang_time": "Stopp etter stillhet i (s)",
+    "background_loudness_level_offset": "Justering for rapportert<br>bakgrunnslydnivå (dB)",
+    "min_transmission_time": "Korteste sending (s)",
+    "max_transmission_time": "Lengste sending<br>(s, 0 betyr ingen grense)",
+    "notify_on_activation": "Varsle når sendingen starter",
+    "min_notification_interval": "Tillat nytt varsel etter (s)",
+    "autoplay_on_activation": "Automatisk lydavspilling",
+    "g_detection": "Lyddeteksjon",
+    "g_transmission": "Sending",
+    "g_notifications": "Varsling"
+}

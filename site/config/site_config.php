@@ -22,6 +22,9 @@ switch (basename($_SERVER['SCRIPT_NAME'])) {
   case 'listen_settings.php':
     define('LOCATION', 'listen_settings');
     break;
+  case 'vox_settings.php':
+    define('LOCATION', 'vox_settings');
+    break;
   case 'audiostream_settings.php':
     define('LOCATION', 'audiostream_settings');
     break;
@@ -54,6 +57,9 @@ if (!MIC_CONNECTED && LOCATION != 'login') {
 }
 
 define('USES_CAMERA', cameraIsConnected());
+
+// The VOX mode is only offered once it has been installed with install_vox.sh
+define('VOX_AVAILABLE', array_key_exists('vox', MODE_VALUES) && tableExists($_DATABASE, 'vox_settings'));
 
 if (isset($_COOKIE['color_scheme'])) {
   define('COLOR_SCHEME', $_COOKIE['color_scheme']);

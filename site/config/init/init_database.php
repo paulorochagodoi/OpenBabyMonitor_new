@@ -46,7 +46,7 @@ echo "Storing password hash in database $db_name\n";
 createPasswordTableIfMissing($database, strlen($hashed_password));
 storeHashedPassword($database, $hashed_password);
 
-$table_names = array('modes', 'language', 'listen_settings', 'audiostream_settings', 'system_settings', 'videostream_settings');
+$table_names = array('modes', 'language', 'listen_settings', 'vox_settings', 'audiostream_settings', 'system_settings', 'videostream_settings');
 foreach ($table_names as $table_name) {
   echo "Creating table $table_name in database $db_name\n";
   createTableIfMissing($database, $table_name, readTableColumnsFromConfig($table_name));

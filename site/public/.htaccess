@@ -6,3 +6,13 @@ Deny from all
 
 # Disable directory browsing
 Options -Indexes
+
+# Never let the browser reuse a cached stream. The VOX mode restarts the audio
+# stream every time it starts transmitting, so a cached playlist or segment from
+# a previous transmission would make the player fail or play old audio.
+<IfModule mod_headers.c>
+<FilesMatch "\.(m3u8|ts|key)$">
+Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+Header set Pragma "no-cache"
+</FilesMatch>
+</IfModule>
