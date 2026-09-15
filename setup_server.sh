@@ -42,8 +42,8 @@ BM_SERVER_ACTION_LOCK_FILE=$BM_SERVER_ACTION_DIR/lock
 BM_SERVER_ACTION_RESULT_FILE=$BM_SERVER_ACTION_DIR/result
 BM_MODE_LOCK_DIR=$BM_DIR/control/.lock
 BM_MODE_LOCK_FILE=$BM_MODE_LOCK_DIR/lock
-BM_LISTEN_COMM_DIR=$BM_DIR/control/.comm
-BM_MODE_SIGNAL_FILE_STEM=$BM_LISTEN_COMM_DIR/signal
+BM_COMM_DIR=$BM_DIR/control/.comm
+BM_MODE_SIGNAL_FILE_STEM=$BM_COMM_DIR/signal
 BM_CONTROL_MIC_DIR=$BM_DIR/control/.mic
 BM_CONTROL_MIC_ID_FILE=$BM_CONTROL_MIC_DIR/id
 BM_CONTROL_CAM_DIR=$BM_DIR/control/.cam
@@ -377,6 +377,10 @@ if [[ "$INSTALL_PHPSYSINFO" = true ]]; then
     sed -i 's/SHOW_NETWORK_ACTIVE_SPEED=.*/SHOW_NETWORK_ACTIVE_SPEED="bps"/g' $BM_PHPSYSINFO_CONFIG_FILE
 fi
 
+# The names of the modes, read from the configuration file so new modes only have
+# to be added in one place
+BM_MODE_NAMES=$(python3 -c "import json; print(' '.join(json.load(open('$BM_DIR/config/config.json'))['modes']['current']['values'].keys()))")
+
 SETUP_SERVICES=true
 if [[ "$SETUP_SERVICES" = true ]]; then
     UNIT_DIR=/lib/systemd/system
@@ -425,7 +429,7 @@ WantedBy=multi-user.target" > $LINKED_UNIT_DIR/$STARTUP_SERVICE_FILENAME
 
     CMD_ALIAS="Cmnd_Alias BM_MODES = $VCGENCMD get_throttled, $VCGENCMD measure_temp,"
 
-    for SERVICE in standby listen audiostream videostream
+    for SERVICE in $BM_MODE_NAMES
     do
         SERVICE_ROOT_NAME=bm_$SERVICE
         SERVICE_FILENAME=$SERVICE_ROOT_NAME.service
@@ -494,20 +498,20 @@ _EOF_
     sudo adduser $BM_USER $BM_WEB_GROUP
 
     # Create folders where the group has write permissions
-    mkdir -p $BM_SERVER_ACTION_DIR $BM_MODE_LOCK_DIR $BM_LISTEN_COMM_DIR $BM_CONTROL_CAM_DIR
+    mkdir -p $BM_SERVER_ACTION_DIR $BM_MODE_LOCK_DIR $BM_COMM_DIR $BM_CONTROL_CAM_DIR
 
     # Make sure mode lock file exists
     touch $BM_MODE_LOCK_FILE
 
     # Make sure files to be watched in the comm directory exist
-    touch $BM_LISTEN_COMM_DIR/{sound_level.dat,probabilities.json,notification.txt}
+    touch $BM_COMM_DIR/{sound_level.dat,probabilities.json,notification.txt,vox_state.json,vox_level.dat}
 
     # Ensure permissions are correct in project folder
     sudo chmod -R $BM_READ_PERMISSIONS $BM_DIR
     sudo chown -R $BM_USER:$BM_WEB_GROUP $BM_DIR
 
     # Make sure signal files exist and are writable
-    for MODE in standby listen audiostream videostream
+    for MODE in $BM_MODE_NAMES
     do
         SIGNAL_FILE="$BM_MODE_SIGNAL_FILE_STEM.$MODE"
         touch $SIGNAL_FILE
@@ -518,7 +522,7 @@ _EOF_
     # Set write permissions
     sudo chmod $BM_WRITE_PERMISSIONS $BM_SERVER_ACTION_DIR
     sudo chmod $BM_WRITE_PERMISSIONS $BM_MODE_LOCK_DIR
-    sudo chmod $BM_WRITE_PERMISSIONS $BM_LISTEN_COMM_DIR
+    sudo chmod $BM_WRITE_PERMISSIONS $BM_COMM_DIR
     sudo chmod $BM_WRITE_PERMISSIONS $BM_PHPSYSINFO_CONFIG_FILE $(dirname $BM_PHPSYSINFO_CONFIG_FILE)
     sudo chmod $BM_WRITE_PERMISSIONS $BM_CONTROL_MIC_DIR
     sudo chmod $BM_WRITE_PERMISSIONS $BM_CONTROL_CAM_DIR
@@ -543,6 +547,9 @@ _EOF_
 
     # Enable SSL module
     sudo a2enmod ssl
+
+    # Enable headers module, used to prevent caching of the live streams
+    sudo a2enmod headers
 
     BM_SERVERCONTROL_DIR=$BM_SERVERCONTROL_DIR $BM_SERVERCONTROL_DIR/create_ssl_key.sh "$BM_HOSTNAME"
     source $BM_SERVERCONTROL_DIR/ssl_cert_key_paths.env

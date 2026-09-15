@@ -1,0 +1,18 @@
+{
+    "vox_settings": "VOX settings",
+    "vox_settings_description": "In VOX mode the device listens continuously and starts streaming audio by itself as soon as it hears something, then stops again after a period of silence. The audio quality is taken from the audio settings.",
+    "submit": "Confirm",
+    "activation_threshold": "Start transmitting above<br>(dB over background)",
+    "activation_time": "Sound must last at least (s)",
+    "release_margin": "Keep transmitting down to<br>(dB below the start level)",
+    "hang_time": "Stop after silence for (s)",
+    "background_loudness_level_offset": "Offset for reported background<br>sound level (dB)",
+    "min_transmission_time": "Shortest transmission (s)",
+    "max_transmission_time": "Longest transmission<br>(s, 0 means no limit)",
+    "notify_on_activation": "Notify when transmission starts",
+    "min_notification_interval": "Allow new notification after (s)",
+    "autoplay_on_activation": "Play audio automatically",
+    "g_detection": "Sound detection",
+    "g_transmission": "Transmission",
+    "g_notifications": "Notification"
+}

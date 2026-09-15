@@ -79,6 +79,36 @@ function createTableIfMissing($database, $table_name, $columns) {
   }
 }
 
+function dropTableIfExists($database, $table_name) {
+  if (!$database->query("DROP TABLE IF EXISTS `$table_name`;")) {
+    bm_error("Could not drop table $table_name: " . $database->error);
+  }
+}
+
+function tableExists($database, $table_name) {
+  $result = $database->query("SHOW TABLES LIKE '$table_name';");
+  if (!$result) {
+    bm_error("Could not check if table $table_name exists: " . $database->error);
+  }
+  return count($result->fetch_all(MYSQLI_NUM)) > 0;
+}
+
+function getTableColumnNames($database, $table_name) {
+  $result = $database->query("SHOW COLUMNS FROM `$table_name`;");
+  if (!$result) {
+    bm_error("Could not obtain the columns of table $table_name: " . $database->error);
+  }
+  return array_map(function ($column) {
+    return $column['Field'];
+  }, $result->fetch_all(MYSQLI_ASSOC));
+}
+
+function addTableColumn($database, $table_name, $column_name, $type) {
+  if (!$database->query("ALTER TABLE `$table_name` ADD COLUMN `$column_name` $type;")) {
+    bm_error("Could not add column $column_name to table $table_name: " . $database->error);
+  }
+}
+
 function insertValuesIntoTable($database, $table_name, $column_values) {
   $names = '';
   $values = '';

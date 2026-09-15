@@ -13,9 +13,11 @@ The purpose of this project is to make use of the great flexibility and availabi
 
 * Fully DIY and open source. Simply obtain a Raspberry Pi and a few peripherals (see [Equipment](#equipment)), download one of the pre-built disk images and install it on the Pi (see [Installation](#installation)).
 * Controlled through a web browser from any device on the local network. No special reciever required, and no client software to install.
+* The web application is available in English, Norwegian and Brazilian Portuguese, selectable from the navigation menu.
 * Can either be connected to the home Wi-Fi or provide its own wireless access point.
 * Detects baby crying using either a simple loudness threshold or a neural network trained on Google's [AudioSet](https://research.google.com/audioset/) dataset to distinguish between crying, babbling and ambient sounds.
 * Live audio streaming and optionally video streaming in up to 1080p resolution.
+* Sound activated transmission (VOX): the monitor listens silently and starts streaming audio on its own as soon as the child makes a sound, then stops again after a period of silence.
 * Low power consumption (see [Power consumption](#powe dr-consumption)), enabling tens of hours of battery life when powered by even a modestly sized portable power bank.
 
 ## Equipment
@@ -73,6 +75,19 @@ In order to fit the Mini USB Microphone next to the Micro USB power plug on a Pi
 
 9. You are now ready to control the baby monitor using [the web application](#the-web-application).
 
+### Adding the VOX mode to an existing installation
+
+The [VOX mode](#basic-operation) is included when the baby monitor is installed from scratch. If you are updating a baby monitor that was installed before the VOX mode existed, connect to the Pi with SSH and run:
+
+```
+cd ~/OpenBabyMonitor
+git pull
+chmod +x install_vox.sh
+./install_vox.sh
+```
+
+The script only adds what the VOX mode needs (a `bm_vox` system service, a few communication files and a `vox_settings` table in the database), and leaves the rest of your installation and all your existing settings alone. It can safely be run again, for instance after a later update. Use `./install_vox.sh --no-packages` if the Pi has no internet access, and `./uninstall_vox.sh` to remove the mode again.
+
 ## The web application
 
 ### Accessing the web application
@@ -108,6 +123,21 @@ Indicated by a crescent moon. The Pi is idle and does as little as possible. A b
 **Notify**
 
 Indicated by a bell. The Pi will record and process audio, and send a notification when the baby is crying. You can also view a visual representation of how the Pi is interpreting the current sounds, as it uses a neural network to distinguish between (1): baby cries, (2): babbling and laughing and (3): other ambient sounds.
+
+**VOX**
+
+Indicated by a broadcast symbol. This is the classic baby monitor behaviour: the Pi listens continuously and starts streaming audio by itself as soon as it hears something, so you only hear the room when there is something to hear. When the room has been quiet for a while, the stream is shut down again and the Pi goes back to listening.
+
+The same microphone recording is used both for measuring the sound level and for the stream, which means the sound level keeps being monitored while the transmission is running, and the sound that triggered the transmission is included at the start of it.
+
+The page shows the current sound level relative to the background level, together with the level needed to start a transmission, which makes it easy to find a threshold that works in your room. All of it can be adjusted under `Settings` -> `VOX`:
+
+* **Start transmitting above** how many dB over the background level a sound must be to start a transmission, and **Sound must last at least** how long it must stay there. Raise these if passing cars or a creaking house set off the monitor.
+* **Keep transmitting down to** how far the sound may drop below the start level without the transmission being considered over, and **Stop after silence for** how long the room must be quiet before the transmission is stopped. Raise the latter if the transmission cuts off between sobs.
+* **Shortest** and **longest transmission** put a floor and a ceiling on the length of a single transmission.
+* **Notify when transmission starts** gives a notification on your phone when the monitor starts transmitting, and **Play audio automatically** starts playing the stream without you having to press anything.
+
+The audio quality (sampling rate, bitrate, encryption and microphone gain) is taken from the audio settings, so the VOX mode sounds exactly like the listen mode.
 
 **Listen**
 

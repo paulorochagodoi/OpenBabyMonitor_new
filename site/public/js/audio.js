@@ -44,9 +44,17 @@ $(function () {
     }
 });
 
-function enableAudioStreamPlayer() {
-    _AUDIOSTREAM_CONTEXT = new AudiostreamContext();
-    switchAudioVisualizationModeTo(_CURRENT_VISUALIZATION_MODE);
+/*
+Creates the audio stream player. The options object accepts `parentId`, the ID of
+the element to place the player in, and `withVisualization`, which can be set to
+false to leave out the waveform/spectrum controls (used by the VOX mode, which
+shows the sound level measured by the device instead).
+*/
+function enableAudioStreamPlayer(options) {
+    _AUDIOSTREAM_CONTEXT = new AudiostreamContext(options);
+    if (_AUDIOSTREAM_CONTEXT.hasVisualization) {
+        switchAudioVisualizationModeTo(_CURRENT_VISUALIZATION_MODE);
+    }
 }
 
 function disableAudioStreamPlayer() {
@@ -57,10 +65,16 @@ function disableAudioStreamPlayer() {
 }
 
 function switchAudioVisualizationModeTo(mode) {
+    if (_AUDIOSTREAM_CONTEXT == null) {
+        return;
+    }
     _AUDIOSTREAM_CONTEXT.visualizer = mode;
 }
 
 function switchFFTSizePowerTo(fftSizePower) {
+    if (_AUDIOSTREAM_CONTEXT == null) {
+        return;
+    }
     _AUDIOSTREAM_CONTEXT.fftSizePower = fftSizePower;
 }
 
@@ -77,9 +91,13 @@ class AudiostreamContext {
     #analyserSamples;
     #analyserSamplesOffset;
     #rebuildAnalyserSamplesArray = true;
+    #hasVisualization;
 
-    constructor() {
-        [this.playerObject, this.#hls] = AudiostreamContext.createPlayer();
+    constructor(options) {
+        options = options || {};
+        this.#hasVisualization = options.withVisualization !== false;
+
+        [this.playerObject, this.#hls] = AudiostreamContext.createPlayer(options.parentId || AUDIO_PLAYER_PARENT_ID);
 
         this.#context = new (window.AudioContext || window.webkitAudioContext)({
             latencyHint: 'balanced',
@@ -101,11 +119,17 @@ class AudiostreamContext {
 
         this.#fftSizePower = parseInt($('#' + AUDIO_FFTSIZE_RANGE_ID).val());
 
-        $('#' + AUDIO_VISUALIZATION_MODE_PARENT_ID).show();
+        if (this.#hasVisualization) {
+            $('#' + AUDIO_VISUALIZATION_MODE_PARENT_ID).show();
+        }
     }
 
     get player() {
         return this.playerObject.get()[0];
+    }
+
+    get hasVisualization() {
+        return this.#hasVisualization;
     }
 
     get fftSizePower() {
@@ -210,7 +234,9 @@ class AudiostreamContext {
     }
 
     close() {
-        $('#' + AUDIO_VISUALIZATION_MODE_PARENT_ID).hide();
+        if (this.#hasVisualization) {
+            $('#' + AUDIO_VISUALIZATION_MODE_PARENT_ID).hide();
+        }
 
         if (this.#visualizer != null) {
             this.#visualizer.destroy();
@@ -251,14 +277,14 @@ class AudiostreamContext {
         return Math.min(nFrequencies, Math.ceil(nFrequencies * SETTING_MAX_FREQUENCY / AudiostreamContext.maxFrequency));
     }
 
-    static createPlayer() {
+    static createPlayer(parentId) {
         if (document.getElementById(AUDIO_PLAYER_ID) != null) {
             triggerErrorEvent(new Error('AudiostreamContext constructor called when player already exists'));
         }
         var playerObject = $('<audio></audio>')
             .prop({ id: AUDIO_PLAYER_ID, controls: true, autoplay: true }).css('max-width', CANVAS_MAX_WIDTH + 'px')
             .append('This browser does not support HTML5 audio.');
-        $('#' + AUDIO_PLAYER_PARENT_ID).append(playerObject);
+        $('#' + parentId).append(playerObject);
 
         var hls = null;
         if (Hls.isSupported()) {

@@ -163,6 +163,53 @@ require_once(TEMPLATES_DIR . '/main.php');
             </div>
           </div>
 
+          <?php if (VOX_AVAILABLE) { ?>
+            <div id="mode_content_vox" class="col-auto text-center text-bm" <?php echo ($mode != MODE_VALUES['vox']) ? HIDDEN_STYLE : ''; ?>>
+              <svg id="vox_icon" class="bi mb-3 mt-3" style="width: 12vh; height: 12vh;" fill="currentColor">
+                <use id="vox_icon_use" href="media/bootstrap-icons.svg#broadcast" />
+              </svg>
+
+              <p id="vox_state_text" class="mb-4"><?php echo LANG['vox_waiting_for_device']; ?></p>
+
+              <div class="row justify-content-center mb-2">
+                <div class="col-auto px-0" style="width: min(90vw, 22rem);">
+                  <div class="d-flex justify-content-between mb-1" style="font-size: 0.85rem;">
+                    <div><?php echo LANG['vox_sound_level']; ?></div>
+                    <div id="vox_level_value"></div>
+                  </div>
+                  <div class="progress" style="height: 1.1rem; position: relative;">
+                    <div id="vox_level_bar" class="progress-bar" style="width: 0%;"></div>
+                    <div id="vox_threshold_marker" style="position: absolute; top: 0; bottom: 0; left: 0%; width: 2px;"></div>
+                  </div>
+                  <div class="text-start mt-1" style="font-size: 0.8rem;">
+                    <span id="vox_threshold_label"></span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row justify-content-center mb-3">
+                <div class="col-auto" style="font-size: 0.85rem;">
+                  <?php echo LANG['vox_last_activation']; ?>: <span id="vox_last_activation"><?php echo LANG['vox_no_activation_yet']; ?></span>
+                </div>
+              </div>
+
+              <div class="row justify-content-center mb-3" id="vox_player_box">
+              </div>
+
+              <div class="row justify-content-center pt-2 mb-2">
+                <div class="col-auto d-flex align-items-center btn-bm pe-0" role="button" onclick="$('#vox_prevent_sleep_switch').click();">
+                  <svg class="bi me-2" style="height: 1.1em; width: 1.1em;" fill="currentColor">
+                    <use href="media/bootstrap-icons.svg#display" />
+                  </svg>
+                  <?php echo LANG['prevent_sleep']; ?>
+                </div>
+                <div class="col-auto form-check form-switch my-0 ms-2 pe-0">
+                  <input id="vox_prevent_sleep_switch" class="form-check-input" type="checkbox" role="button">
+                </div>
+              </div>
+            </div>
+          <?php } ?>
+
           <div id="mode_content_audio" class="col-auto text-center text-bm" <?php echo ($mode != MODE_VALUES['audiostream']) ? HIDDEN_STYLE : ''; ?>>
             <div class="row justify-content-center align-items-center">
               <div class="col-sm-6 mb-5 text-center" style="display: none;">
@@ -318,11 +365,15 @@ require_once(TEMPLATES_DIR . '/main.php');
     <footer class="d-flex flex-grow-0 flex-shrink-1 justify-content-center">
       <div id="footer_container" class="btn-group" data-toggle="buttons" style="display: none;">
         <?php
-        createModeRadioButton($mode, 'standby', LANG['standby'], 'moon');
-        createModeRadioButton($mode, 'listen', LANG['notify'], 'bell');
-        createModeRadioButton($mode, 'audiostream', LANG['listen'], 'mic');
+        $n_mode_buttons = 3 + (VOX_AVAILABLE ? 1 : 0) + (USES_CAMERA ? 1 : 0);
+        createModeRadioButton($mode, 'standby', LANG['standby'], 'moon', $n_mode_buttons);
+        createModeRadioButton($mode, 'listen', LANG['notify'], 'bell', $n_mode_buttons);
+        if (VOX_AVAILABLE) {
+          createModeRadioButton($mode, 'vox', LANG['vox'], 'broadcast', $n_mode_buttons, 'broadcast-pin');
+        }
+        createModeRadioButton($mode, 'audiostream', LANG['listen'], 'mic', $n_mode_buttons);
         if (USES_CAMERA) {
-          createModeRadioButton($mode, 'videostream', LANG['observe'], 'camera-video');
+          createModeRadioButton($mode, 'videostream', LANG['observe'], 'camera-video', $n_mode_buttons);
         }
         ?>
       </div>
@@ -355,7 +406,10 @@ require_once(TEMPLATES_DIR . '/main.php');
     const LISTEN_MODE = <?php echo MODE_VALUES['listen']; ?>;
     const AUDIOSTREAM_MODE = <?php echo MODE_VALUES['audiostream']; ?>;
     const VIDEOSTREAM_MODE = <?php echo (USES_CAMERA) ? MODE_VALUES['videostream'] : 'null'; ?>;
+    const VOX_MODE = <?php echo VOX_AVAILABLE ? MODE_VALUES['vox'] : 'null'; ?>;
     const INITIAL_MODE = <?php echo $mode; ?>;
+
+    const SETTING_VOX_AUTOPLAY = <?php echo (VOX_AVAILABLE && readValuesFromTable($_DATABASE, 'vox_settings', 'autoplay_on_activation', true)) ? 'true' : 'false'; ?>;
 
     const SETTING_MODEL = '<?php echo INFERENCE_MODEL; ?>';
     const SETTING_MIN_SOUND_CONTRAST = <?php echo readValuesFromTable($_DATABASE, 'listen_settings', 'min_sound_contrast', true); ?>;
@@ -374,6 +428,7 @@ require_once(TEMPLATES_DIR . '/main.php');
   <script src="js/navbar_main.js"></script>
   <script src="js/audio_video.js"></script>
   <script src="js/audio.js"></script>
+  <script src="js/vox.js"></script>
   <?php if (USES_CAMERA) { ?>
     <script src="js/video.js"></script>
   <?php } ?>

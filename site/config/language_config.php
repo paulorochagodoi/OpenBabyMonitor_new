@@ -8,6 +8,9 @@ require_once(SRC_DIR . '/database.php');
 require_once(SRC_DIR . '/language.php');
 
 define('VALID_LANGUAGES', $_CONFIG['language']['current']['values']);
+// The name each language is presented with, and the flag-icons country code of its flag
+define('LANGUAGE_NAMES', $_CONFIG['language']['current']['names']);
+define('LANGUAGE_FLAGS', $_CONFIG['language']['current']['flags']);
 
 if (isset($_GET['lang'])) {
   $new_language = $_GET['lang'];

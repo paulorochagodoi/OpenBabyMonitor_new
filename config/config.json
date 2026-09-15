@@ -22,8 +22,19 @@
             "initial_value": "en",
             "values": [
                 "en",
-                "no"
-            ]
+                "no",
+                "pt"
+            ],
+            "names": {
+                "en": "English",
+                "no": "Norsk",
+                "pt": "Português"
+            },
+            "flags": {
+                "en": "gb",
+                "no": "no",
+                "pt": "br"
+            }
         }
     },
     "modes": {
@@ -58,6 +69,13 @@
                     "stop_command": "sudo systemctl stop bm_videostream",
                     "restart_command": "sudo systemctl restart bm_videostream",
                     "wait_for": "stream=BM_PICAM_STREAM_FILE"
+                },
+                "vox": {
+                    "value": 4,
+                    "start_command": "sudo systemctl start bm_vox",
+                    "stop_command": "sudo systemctl stop bm_vox",
+                    "restart_command": "sudo systemctl restart bm_vox",
+                    "wait_for": "signal"
                 }
             }
         }
@@ -292,6 +310,119 @@
         "interpretation": "g_interpretation",
         "notifications": "g_notifications",
         "notify_on": "g_notify_on"
+    },
+    "vox_settings": {
+        "activation_threshold": {
+            "group": "detection",
+            "name": "activation_threshold",
+            "type": "FLOAT NOT NULL",
+            "initial_value": 12,
+            "range": {
+                "min": 0,
+                "max": 40,
+                "step": 0.5
+            }
+        },
+        "activation_time": {
+            "group": "detection",
+            "name": "activation_time",
+            "type": "FLOAT NOT NULL",
+            "initial_value": 1.0,
+            "range": {
+                "min": 0,
+                "max": 10,
+                "step": 0.1
+            }
+        },
+        "release_margin": {
+            "group": "detection",
+            "name": "release_margin",
+            "type": "FLOAT NOT NULL",
+            "initial_value": 3,
+            "range": {
+                "min": 0,
+                "max": 20,
+                "step": 0.5
+            }
+        },
+        "hang_time": {
+            "group": "detection",
+            "name": "hang_time",
+            "type": "INT UNSIGNED NOT NULL",
+            "initial_value": 20,
+            "range": {
+                "min": 1,
+                "max": 300,
+                "step": 1
+            }
+        },
+        "background_loudness_level_offset": {
+            "group": "detection",
+            "name": "background_loudness_level_offset",
+            "type": "FLOAT NOT NULL",
+            "initial_value": 0,
+            "range": {
+                "min": -25,
+                "max": 25,
+                "step": 0.1
+            }
+        },
+        "min_transmission_time": {
+            "group": "transmission",
+            "name": "min_transmission_time",
+            "type": "INT UNSIGNED NOT NULL",
+            "initial_value": 10,
+            "range": {
+                "min": 0,
+                "max": 120,
+                "step": 1
+            }
+        },
+        "max_transmission_time": {
+            "group": "transmission",
+            "name": "max_transmission_time",
+            "type": "INT UNSIGNED NOT NULL",
+            "initial_value": 300,
+            "range": {
+                "min": 0,
+                "max": 3600,
+                "step": 10
+            }
+        },
+        "notify_on_activation": {
+            "group": "notifications",
+            "name": "notify_on_activation",
+            "type": "BOOLEAN NOT NULL",
+            "initial_value": true
+        },
+        "min_notification_interval": {
+            "group": "notifications",
+            "name": "min_notification_interval",
+            "type": "INT UNSIGNED NOT NULL",
+            "initial_value": 60,
+            "range": {
+                "min": 0,
+                "max": 1800,
+                "step": 1
+            },
+            "disabled_when": {
+                "notify_on_activation": {
+                    "operator": "!=",
+                    "value": "1"
+                }
+            }
+        },
+        "autoplay_on_activation": {
+            "group": "notifications",
+            "name": "autoplay_on_activation",
+            "type": "BOOLEAN NOT NULL",
+            "initial_value": true
+        }
+    },
+    "vox_groups": {
+        "detection": "g_detection",
+        "transmission": "g_transmission",
+        "notifications": "g_notifications"
     },
     "audiostream_settings": {
         "encrypted": {

@@ -3,11 +3,16 @@ const FOOTER_CONTAINER_ID = 'footer_container';
 
 const MODE_RADIO_STANDBY_ID = 'mode_radio_standby';
 const MODE_RADIO_LISTEN_ID = 'mode_radio_listen';
+const MODE_RADIO_VOX_ID = 'mode_radio_vox';
 const MODE_RADIO_AUDIO_ID = 'mode_radio_audiostream';
 const MODE_RADIO_VIDEO_ID = 'mode_radio_videostream';
 
 var radioIds = [MODE_RADIO_STANDBY_ID, MODE_RADIO_LISTEN_ID, MODE_RADIO_AUDIO_ID];
 var contentIds = ['mode_content_standby', MODE_CONTENT_LISTEN_ID, MODE_CONTENT_AUDIO_ID];
+if (VOX_AVAILABLE) {
+    radioIds.push(MODE_RADIO_VOX_ID);
+    contentIds.push(MODE_CONTENT_VOX_ID);
+}
 if (USES_CAMERA) {
     radioIds.push(MODE_RADIO_VIDEO_ID);
     contentIds.push(MODE_CONTENT_VIDEO_ID);
@@ -20,8 +25,7 @@ const WAITING_CONTENT_ID = 'mode_content_waiting';
 const ERROR_CONTENT_ID = 'mode_content_error';
 const ERROR_CONTENT_MESSAGE_ID = 'mode_content_error_message';
 
-const PREVENT_SLEEP_LISTEN_SWITCH_ID = 'listen_prevent_sleep_switch';
-const PREVENT_SLEEP_AUDIO_SWITCH_ID = 'audio_prevent_sleep_switch';
+const PREVENT_SLEEP_SWITCH_IDS = ['listen_prevent_sleep_switch', 'vox_prevent_sleep_switch', 'audio_prevent_sleep_switch'];
 
 var _CURRENT_MODE = INITIAL_MODE;
 var _IS_SWITCHING_MODE = false;
@@ -72,25 +76,20 @@ function setupSleepPrevention() {
     _NO_SLEEP = new NoSleep();
 
     $('#' + MODE_RADIO_LISTEN_ID).click(enableNoSleep);
+    $('#' + MODE_RADIO_VOX_ID).click(enableNoSleep);
     $('#' + MODE_RADIO_AUDIO_ID).click(enableNoSleep);
     $('#' + MODE_RADIO_STANDBY_ID).click(disableNoSleep);
 
     setNoSleepSwitchesChecked(false);
 
-    $('#' + PREVENT_SLEEP_LISTEN_SWITCH_ID).click(function (clickEvent) {
-        if (this.checked) {
-            enableNoSleep(clickEvent);
-        } else {
-            disableNoSleep();
-        }
-    });
-
-    $('#' + PREVENT_SLEEP_AUDIO_SWITCH_ID).click(function (clickEvent) {
-        if (this.checked) {
-            enableNoSleep(clickEvent);
-        } else {
-            disableNoSleep();
-        }
+    PREVENT_SLEEP_SWITCH_IDS.forEach(switchId => {
+        $('#' + switchId).click(function (clickEvent) {
+            if (this.checked) {
+                enableNoSleep(clickEvent);
+            } else {
+                disableNoSleep();
+            }
+        });
     });
 }
 
@@ -111,8 +110,9 @@ function disableNoSleep() {
 }
 
 function setNoSleepSwitchesChecked(checked) {
-    $('#' + PREVENT_SLEEP_LISTEN_SWITCH_ID).prop('checked', checked);
-    $('#' + PREVENT_SLEEP_AUDIO_SWITCH_ID).prop('checked', checked);
+    PREVENT_SLEEP_SWITCH_IDS.forEach(switchId => {
+        $('#' + switchId).prop('checked', checked);
+    });
 }
 
 function registerModeChangeHandler() {
@@ -246,6 +246,15 @@ function setVisibleContent(visibleContentId) {
         initializeListenMode();
     } else {
         deactivateListenMode();
+    }
+    // The VOX mode must be deactivated before the audio stream player is enabled
+    // below, since leaving VOX mode also closes the player it was using
+    if (VOX_AVAILABLE) {
+        if (visibleContentId == MODE_CONTENT_VOX_ID) {
+            initializeVoxMode();
+        } else {
+            deactivateVoxMode();
+        }
     }
     if (visibleContentId == MODE_CONTENT_AUDIO_ID) {
         enableAudioStreamPlayer();

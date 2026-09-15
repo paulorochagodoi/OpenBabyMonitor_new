@@ -5,6 +5,7 @@ define('ANY_KNOWN_NETWORKS', anyKnownNetworks($_DATABASE));
 <script>
   const ANY_KNOWN_NETWORKS = <?php echo ANY_KNOWN_NETWORKS ? 'true' : 'false'; ?>;
   const DISABLE_CLIENT_MODE = <?php echo (ACCESS_POINT_ACTIVE && !ANY_KNOWN_NETWORKS) ? 'true' : 'false'; ?>;
+  const VOX_AVAILABLE = <?php echo VOX_AVAILABLE ? 'true' : 'false'; ?>;
 </script>
 
 <nav id="navbar" class="navbar navbar-expand-md navbar-<?php echo COLOR_SCHEME; ?>" style="display: none;">
@@ -37,6 +38,14 @@ define('ANY_KNOWN_NETWORKS', anyKnownNetworks($_DATABASE));
                 </svg>
                 <?php echo LANG['nav_notification']; ?>
               </a></li>
+            <?php if (VOX_AVAILABLE) { ?>
+              <li><a id="vox_settings_nav_link" class="dropdown-item<?php echo LOCATION == 'vox_settings' ? ' active' : ''; ?> d-flex align-items-center" href="vox_settings.php">
+                  <svg class="bi me-2" style="height: 1.1em; width: 1.1em;" fill="currentColor">
+                    <use href="media/bootstrap-icons.svg#broadcast" />
+                  </svg>
+                  <?php echo LANG['nav_vox']; ?>
+                </a></li>
+            <?php } ?>
             <li><a id="audiostream_settings_nav_link" class="dropdown-item<?php echo LOCATION == 'audiostream_settings' ? ' active' : ''; ?> d-flex align-items-center" href="audiostream_settings.php">
                 <svg class="bi me-2" style="height: 1.1em; width: 1.1em;" fill="currentColor">
                   <use href="media/bootstrap-icons.svg#soundwave" />
@@ -133,18 +142,15 @@ define('ANY_KNOWN_NETWORKS', anyKnownNetworks($_DATABASE));
             <?php echo LANG['nav_language']; ?>
           </a>
           <ul class="dropdown-menu" style="min-width: 1em;">
-            <li>
-              <a id="language_en_nav_link" class="dropdown-item<?php echo LANGUAGE == 'en' ? ' active"' : '" href="' . URL_WITHOUT_SEARCH . '?lang=en"'; ?>">
-                <span class="me-2 fi fi-gb" style="height: 1.1em; width: 1.1em;"></span>
-                English
-              </a>
-            </li>
-            <li>
-              <a id="language_no_nav_link" class="dropdown-item<?php echo LANGUAGE == 'no' ? ' active"' : '" href="' . URL_WITHOUT_SEARCH . '?lang=no"'; ?>">
-                <span class="me-2 fi fi-no" style="height: 1.1em; width: 1.1em;"></span>
-                Norsk
-              </a>
-            </li>
+            <?php foreach (VALID_LANGUAGES as $language_code) {
+              $is_current_language = (LANGUAGE == $language_code); ?>
+              <li>
+                <a id="language_<?php echo $language_code; ?>_nav_link" class="dropdown-item<?php echo $is_current_language ? ' active' : ''; ?>"<?php echo $is_current_language ? '' : ' href="' . URL_WITHOUT_SEARCH . '?lang=' . $language_code . '"'; ?>>
+                  <span class="me-2 fi fi-<?php echo LANGUAGE_FLAGS[$language_code]; ?>" style="height: 1.1em; width: 1.1em;"></span>
+                  <?php echo LANGUAGE_NAMES[$language_code]; ?>
+                </a>
+              </li>
+            <?php } ?>
           </ul>
         </li>
         <li class="nav-item dropdown">

@@ -3,6 +3,7 @@ require_once(dirname(__DIR__) . '/config/path_config.php');
 require_once(dirname(__DIR__) . '/config/error_config.php');
 require_once(dirname(__DIR__) . '/config/env_config.php');
 require_once(dirname(__DIR__) . '/config/monitoring_config.php');
+require_once(dirname(__DIR__) . '/config/control_config.php');
 require_once(SRC_DIR . '/sse.php');
 
 function measureTemperature() {
@@ -56,15 +57,15 @@ if (!$inotify_instance) {
 }
 stream_set_blocking($inotify_instance, false);
 
-define('MODE_SIGNAL_FILE_STEM', getenv('BM_MODE_SIGNAL_FILE_STEM'));
 $descriptors = array();
-foreach (array('standby', 'listen', 'audiostream', 'videostream') as $mode_name) {
+foreach (array_keys(MODE_VALUES) as $mode_name) {
   $signal_file =  MODE_SIGNAL_FILE_STEM . ".$mode_name";
 
   if (!file_exists($signal_file)) {
-    $msg = "Signal file does not exist: $signal_file";
-    sendSSEMessage('error', $msg);
-    bm_error($msg);
+    // A mode that has not been installed should not break the monitoring of the
+    // modes that have been
+    bm_warning("Signal file does not exist: $signal_file");
+    continue;
   }
 
   $descriptors[$mode_name] = inotify_add_watch($inotify_instance, $signal_file, IN_ATTRIB);

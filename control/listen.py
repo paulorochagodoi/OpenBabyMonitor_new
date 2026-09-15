@@ -140,7 +140,8 @@ class InferenceNotifier:
         elif len(detected_labels) > 1:
             detected_label = 'bad_and_good'
         elif self.notify_on_any and self.notify_and_or == 'or' and self.compute_label_fraction_in_prediction_history(
-            (self.labels['bad'], self.labels['good'])):
+            (self.labels['bad'],
+             self.labels['good'])) >= self.fraction_threshold:
             detected_label = 'bad_or_good'
 
         if detected_label is not None:
@@ -338,12 +339,6 @@ def create_model(model_file):
     return model
 
 
-def get_audio_device():
-    mic_id = mic.get_mic_id()
-    audio_device = 'plug{}'.format(mic_id)
-    return audio_device
-
-
 def create_feature_extractor(config):
     feature_shape = config['inference']['input_shape']
     return features.AudioFeatureExtractor(
@@ -367,7 +362,7 @@ def create_feature_provider(config,
                             standardize=False):
     standardization_file = control_dir / 'standardization.npz' if standardize else None
     return features.FeatureProvider(
-        get_audio_device(),
+        mic.get_audio_device(),
         create_feature_extractor(config),
         min_sound_contrast=min_sound_contrast,
         background_loudness_level_offset=background_loudness_level_offset,

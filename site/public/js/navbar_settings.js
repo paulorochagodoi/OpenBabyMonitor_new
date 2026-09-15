@@ -11,6 +11,9 @@ $(function () {
     connectModalToLink(TITLE_NAV_LINK_ID, Object.assign({}, MODES_MODAL_BASE_PROPERTIES, { showModal: settingsFormHasChanged }), MODAL_ADDITIONAL_SETTER);
     connectModalToLink(MODES_NAV_LINK_ID, Object.assign({}, MODES_MODAL_BASE_PROPERTIES, { showModal: settingsFormHasChanged }), MODAL_ADDITIONAL_SETTER);
     connectModalToLink(LISTEN_SETTINGS_NAV_LINK_ID, Object.assign({}, LISTEN_SETTINGS_MODAL_BASE_PROPERTIES, { showModal: settingsFormHasChanged }), MODAL_ADDITIONAL_SETTER);
+    if (VOX_AVAILABLE) {
+        connectModalToLink(VOX_SETTINGS_NAV_LINK_ID, Object.assign({}, VOX_SETTINGS_MODAL_BASE_PROPERTIES, { showModal: settingsFormHasChanged }), MODAL_ADDITIONAL_SETTER);
+    }
     connectModalToLink(AUDIOSTREAM_SETTINGS_NAV_LINK_ID, Object.assign({}, AUDIOSTREAM_SETTINGS_MODAL_BASE_PROPERTIES, { showModal: settingsFormHasChanged }), MODAL_ADDITIONAL_SETTER);
     if (USES_CAMERA) {
         connectModalToLink(VIDEOSTREAM_SETTINGS_NAV_LINK_ID, Object.assign({}, VIDEOSTREAM_SETTINGS_MODAL_BASE_PROPERTIES, { showModal: settingsFormHasChanged }), MODAL_ADDITIONAL_SETTER);
