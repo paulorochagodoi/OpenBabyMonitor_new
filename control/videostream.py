@@ -131,7 +131,8 @@ def stream_video_with_settings(recording_settings=None,
             if wait_for_stream(os.environ['BM_PICAM_STREAM_FILE'],
                                picam_process):
                 stream_recorder = start_recorder(recording_settings, log_path)
-                fence_process = start_fence_monitor(fence_settings, log_file)
+                fence_process = start_fence_monitor(fence_settings, log_file,
+                                                    log_path)
 
             return_code = picam_process.wait()
             if return_code != 0:
@@ -148,20 +149,44 @@ def start_recorder(recording_settings, log_path):
         recording_settings,
         os.environ['BM_PICAM_STREAM_FILE'],
         log_path=log_path)
-    if stream_recorder is not None:
+    if stream_recorder is None:
+        return None
+    try:
         stream_recorder.start()
+    except Exception as exception:
+        # Recording is secondary to showing the video, so a problem with it must
+        # never take the mode down
+        stream_recorder.log(f'Could not start the recording: {exception}')
+        return None
     return stream_recorder
 
 
-def start_fence_monitor(fence_settings, log_file):
+def start_fence_monitor(fence_settings, log_file, log_path=None):
     if not fence_settings or not fence_settings.get('enabled', False):
         return None
     fence_path = pathlib.Path(__file__).resolve().parent / 'fence.py'
-    # Started through the interpreter so it does not depend on the file keeping
-    # its executable bit
-    return subprocess.Popen([sys.executable, str(fence_path)],
-                            stdout=subprocess.DEVNULL,
-                            stderr=log_file)
+    try:
+        # Started through the interpreter so it does not depend on the file
+        # keeping its executable bit
+        return subprocess.Popen([sys.executable, str(fence_path)],
+                                stdout=subprocess.DEVNULL,
+                                stderr=log_file)
+    except OSError as exception:
+        # Watching the fence is secondary too
+        log_message(log_path, f'Could not start the fence: {exception}')
+        return None
+
+
+def log_message(log_path, message):
+    message = f'videostream: {message}'
+    if log_path is None:
+        print(message, file=sys.stderr)
+        return
+    try:
+        with open(log_path, 'a') as f:
+            f.write(f'[{time.strftime("%Y-%m-%d %H:%M:%S")}] {message}\n')
+    except OSError:
+        pass
 
 
 def wait_for_stream(stream_file, picam_process):
