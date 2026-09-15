@@ -18,6 +18,8 @@ The purpose of this project is to make use of the great flexibility and availabi
 * Detects baby crying using either a simple loudness threshold or a neural network trained on Google's [AudioSet](https://research.google.com/audioset/) dataset to distinguish between crying, babbling and ambient sounds.
 * Live audio streaming and optionally video streaming in up to 1080p resolution.
 * Sound activated transmission (VOX): the monitor listens silently and starts streaming audio on its own as soon as the child makes a sound, then stops again after a period of silence.
+* Rolling recording with a timeline of what happened, so you can go back and hear or watch the moment the child started crying. The oldest part of the recording is deleted as new material is added, so it never fills up the card.
+* A virtual fence you draw over the camera image, which alerts you when something moves inside it or outside it, and tells you when the child has been still long enough to be asleep.
 * Low power consumption (see [Power consumption](#powe dr-consumption)), enabling tens of hours of battery life when powered by even a modestly sized portable power bank.
 
 ## Equipment
@@ -75,18 +77,32 @@ In order to fit the Mini USB Microphone next to the Micro USB power plug on a Pi
 
 9. You are now ready to control the baby monitor using [the web application](#the-web-application).
 
-### Adding the VOX mode to an existing installation
+### Adding the optional features to an existing installation
 
-The [VOX mode](#basic-operation) is included when the baby monitor is installed from scratch. If you are updating a baby monitor that was installed before the VOX mode existed, connect to the Pi with SSH and run:
+The VOX mode, the recording with its timeline and the virtual fence are all included when the baby monitor is installed from scratch. If you are updating a baby monitor that was installed before they existed, connect to the Pi with SSH and run the installer for the ones you want:
 
 ```
 cd ~/OpenBabyMonitor
 git pull
-chmod +x install_vox.sh
+chmod +x install_*.sh uninstall_*.sh
 ./install_vox.sh
+./install_recording.sh
+./install_fence.sh
 ```
 
-The script only adds what the VOX mode needs (a `bm_vox` system service, a few communication files and a `vox_settings` table in the database), and leaves the rest of your installation and all your existing settings alone. It can safely be run again, for instance after a later update. Use `./install_vox.sh --no-packages` if the Pi has no internet access, and `./uninstall_vox.sh` to remove the mode again.
+| Script | Adds |
+| ------ | ---- |
+| `install_vox.sh` | The [VOX mode](#basic-operation): a `bm_vox` service and a `vox_settings` table |
+| `install_recording.sh` | The [recording and the timeline](#recording-and-the-timeline): a place to keep the recordings, a `recording_settings` table and the event log |
+| `install_fence.sh` | The [virtual fence](#the-virtual-fence): a `fence_settings` table and the event log |
+
+Each script only adds what its own feature needs and leaves the rest of your installation and all your existing settings alone. They can safely be run again, for instance after a later update. All of them take `--no-packages` if the Pi has no internet access, and each has a matching `uninstall_*.sh` that takes `--purge` when you also want the stored settings and data gone.
+
+To keep the recordings somewhere other than the memory card, point the installer at another location, for instance a USB drive:
+
+```
+./install_recording.sh --dir /media/usb/babymonitor
+```
 
 ## The web application
 
@@ -146,6 +162,30 @@ Indicated by a microphone. The Pi will record and stream audio directly to the w
 **Observe**
 
 Indicated by a camera. The Pi will capture and stream video and audio directly to the web application. This mode will be unavailable if the Pi does not have a camera connected.
+
+### Recording and the timeline
+
+While the device is in the listen, VOX or observe mode it keeps a rolling recording of what it captures, and notes down what happened as events: crying, babbling, a VOX transmission starting, movement in the fence, the child falling asleep. `Timeline` in the navigation menu shows those events on a time axis, with the stretches that are recorded shaded behind them. Click an event, or anywhere on the axis, and the player below jumps to that moment.
+
+The recording is kept in the form of small segments with the wall clock time written into them, which is what makes it possible to jump straight to a moment. Once the recording reaches the length set under `Settings` -> `Recording`, the oldest segments are deleted as new ones are written, so the recording stays the same size forever. The recorder also stops on its own if the card gets close to full.
+
+Video is recorded by copying the stream the camera is already producing, so recording costs almost no extra processing. It does, however, write to the memory card continuously, which wears the card out over time; 720p video is around 11 MB per minute. Keep the retention no longer than you need, and consider `./install_recording.sh --dir` to put the recordings on a USB drive instead.
+
+The notify mode is the exception: it listens in short bursts rather than continuously, so there is nothing to record there. It still adds its crying and babbling events to the timeline.
+
+### The virtual fence
+
+The fence is a polygon you draw over the camera image, around the area the child should stay in. Go to `Settings` -> `Fence` while the observe mode is running, click the corners on the picture, and drag them until the shape fits the crib.
+
+While the device is streaming video it watches that area and reports:
+
+* **Movement inside the fence**, which is the child moving.
+* **Movement outside the fence**, which is something moving where it should not be.
+* **Asleep**, once the area inside the fence has been still for the time set in the settings, and **awake** when it starts moving again. The current state is shown as a badge in the corner of the video.
+
+The fence analyzes the video the camera is already streaming rather than opening the camera itself, so you get the full live video and the fence at the same time. Frames are decoded at a low resolution and a few per second, which is enough for movement and cheap enough to run alongside the streaming.
+
+**What it cannot do:** the fence detects *movement*, not the child. A child lying perfectly still and an empty crib look exactly the same to it, so treat "asleep" as "nothing has moved in the fence for a while" and never as confirmation that the child is there and well. It is also blind in a dark room unless you use a NoIR camera with an infrared light.
 
 ## Power consumption
 

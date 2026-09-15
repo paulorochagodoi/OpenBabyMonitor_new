@@ -134,6 +134,20 @@
             "type": "VARCHAR(64) PRIMARY KEY"
         }
     },
+    "events": {
+        "id": {
+            "type": "INT UNSIGNED AUTO_INCREMENT PRIMARY KEY"
+        },
+        "time": {
+            "type": "DOUBLE NOT NULL"
+        },
+        "type": {
+            "type": "VARCHAR(16) NOT NULL"
+        },
+        "value": {
+            "type": "FLOAT"
+        }
+    },
     "listen_settings": {
         "interval": {
             "group": "recording",
@@ -423,6 +437,179 @@
         "detection": "g_detection",
         "transmission": "g_transmission",
         "notifications": "g_notifications"
+    },
+    "recording_settings": {
+        "enabled": {
+            "group": "recording",
+            "name": "recording_enabled",
+            "type": "BOOLEAN NOT NULL",
+            "initial_value": true
+        },
+        "record_video": {
+            "group": "recording",
+            "name": "record_video",
+            "type": "BOOLEAN NOT NULL",
+            "initial_value": true,
+            "disabled_when": {
+                "enabled": {
+                    "operator": "!=",
+                    "value": "1"
+                }
+            }
+        },
+        "record_audio": {
+            "group": "recording",
+            "name": "record_audio",
+            "type": "BOOLEAN NOT NULL",
+            "initial_value": true,
+            "disabled_when": {
+                "enabled": {
+                    "operator": "!=",
+                    "value": "1"
+                }
+            }
+        },
+        "retention_minutes": {
+            "group": "storage",
+            "name": "retention_minutes",
+            "type": "INT UNSIGNED NOT NULL",
+            "initial_value": 30,
+            "range": {
+                "min": 5,
+                "max": 720,
+                "step": 5
+            }
+        },
+        "min_free_space": {
+            "group": "storage",
+            "name": "min_free_space",
+            "type": "INT UNSIGNED NOT NULL",
+            "initial_value": 500,
+            "range": {
+                "min": 100,
+                "max": 10000,
+                "step": 100
+            }
+        },
+        "event_retention_hours": {
+            "group": "events",
+            "name": "event_retention_hours",
+            "type": "INT UNSIGNED NOT NULL",
+            "initial_value": 48,
+            "range": {
+                "min": 1,
+                "max": 720,
+                "step": 1
+            }
+        }
+    },
+    "recording_groups": {
+        "recording": "g_recording_what",
+        "storage": "g_storage",
+        "events": "g_events"
+    },
+    "fence_settings": {
+        "enabled": {
+            "group": "detection",
+            "name": "fence_enabled",
+            "type": "BOOLEAN NOT NULL",
+            "initial_value": true
+        },
+        "sensitivity": {
+            "group": "detection",
+            "name": "sensitivity",
+            "type": "INT UNSIGNED NOT NULL",
+            "initial_value": 50,
+            "range": {
+                "min": 1,
+                "max": 100,
+                "step": 1
+            },
+            "disabled_when": {
+                "enabled": {
+                    "operator": "!=",
+                    "value": "1"
+                }
+            }
+        },
+        "min_motion_area": {
+            "group": "detection",
+            "name": "min_motion_area",
+            "type": "FLOAT NOT NULL",
+            "initial_value": 1.0,
+            "range": {
+                "min": 0.1,
+                "max": 20,
+                "step": 0.1
+            },
+            "disabled_when": {
+                "enabled": {
+                    "operator": "!=",
+                    "value": "1"
+                }
+            }
+        },
+        "analysis_framerate": {
+            "group": "detection",
+            "name": "analysis_framerate",
+            "type": "INT UNSIGNED NOT NULL",
+            "initial_value": 4,
+            "range": {
+                "min": 1,
+                "max": 10,
+                "step": 1
+            },
+            "disabled_when": {
+                "enabled": {
+                    "operator": "!=",
+                    "value": "1"
+                }
+            }
+        },
+        "alert_on_motion": {
+            "group": "alerts",
+            "name": "alert_on_motion",
+            "type": "BOOLEAN NOT NULL",
+            "initial_value": true
+        },
+        "alert_on_outside": {
+            "group": "alerts",
+            "name": "alert_on_outside",
+            "type": "BOOLEAN NOT NULL",
+            "initial_value": true
+        },
+        "sleep_delay": {
+            "group": "alerts",
+            "name": "sleep_delay",
+            "type": "INT UNSIGNED NOT NULL",
+            "initial_value": 120,
+            "range": {
+                "min": 30,
+                "max": 1800,
+                "step": 10
+            }
+        },
+        "min_alert_interval": {
+            "group": "alerts",
+            "name": "min_alert_interval",
+            "type": "INT UNSIGNED NOT NULL",
+            "initial_value": 60,
+            "range": {
+                "min": 0,
+                "max": 1800,
+                "step": 5
+            }
+        },
+        "polygon": {
+            "group": "zone",
+            "name": "polygon",
+            "type": "VARCHAR(2000) NOT NULL",
+            "initial_value": "[]"
+        }
+    },
+    "fence_groups": {
+        "detection": "g_fence_detection",
+        "alerts": "g_fence_alerts"
     },
     "audiostream_settings": {
         "encrypted": {

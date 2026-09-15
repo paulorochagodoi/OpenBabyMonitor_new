@@ -6,6 +6,9 @@ define('ANY_KNOWN_NETWORKS', anyKnownNetworks($_DATABASE));
   const ANY_KNOWN_NETWORKS = <?php echo ANY_KNOWN_NETWORKS ? 'true' : 'false'; ?>;
   const DISABLE_CLIENT_MODE = <?php echo (ACCESS_POINT_ACTIVE && !ANY_KNOWN_NETWORKS) ? 'true' : 'false'; ?>;
   const VOX_AVAILABLE = <?php echo VOX_AVAILABLE ? 'true' : 'false'; ?>;
+  const RECORDING_AVAILABLE = <?php echo RECORDING_AVAILABLE ? 'true' : 'false'; ?>;
+  const EVENTS_AVAILABLE = <?php echo EVENTS_AVAILABLE ? 'true' : 'false'; ?>;
+  const FENCE_AVAILABLE = <?php echo FENCE_AVAILABLE ? 'true' : 'false'; ?>;
 </script>
 
 <nav id="navbar" class="navbar navbar-expand-md navbar-<?php echo COLOR_SCHEME; ?>" style="display: none;">
@@ -24,6 +27,16 @@ define('ANY_KNOWN_NETWORKS', anyKnownNetworks($_DATABASE));
             <?php echo LANG['nav_modes']; ?>
           </a>
         </li>
+        <?php if (EVENTS_AVAILABLE) { ?>
+          <li class="nav-item">
+            <a id="timeline_nav_link" class="nav-link<?php echo LOCATION == 'timeline' ? ' active' : ''; ?> d-flex align-items-center disabled" href="timeline.php">
+              <svg class="bi me-2" style="height: 1.1em; width: 1.1em;" fill="currentColor">
+                <use href="media/bootstrap-icons.svg#clock-history" />
+              </svg>
+              <?php echo LANG['nav_timeline']; ?>
+            </a>
+          </li>
+        <?php } ?>
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle d-flex align-items-center disabled" href="#" data-bs-toggle="dropdown">
             <svg class="bi me-2" style="height: 1.1em; width: 1.1em;" fill="currentColor">
@@ -58,6 +71,22 @@ define('ANY_KNOWN_NETWORKS', anyKnownNetworks($_DATABASE));
                     <use href="media/bootstrap-icons.svg#film" />
                   </svg>
                   <?php echo LANG['nav_video']; ?>
+                </a></li>
+            <?php } ?>
+            <?php if (FENCE_AVAILABLE) { ?>
+              <li><a id="fence_settings_nav_link" class="dropdown-item<?php echo LOCATION == 'fence_settings' ? ' active' : ''; ?> d-flex align-items-center" href="fence_settings.php">
+                  <svg class="bi me-2" style="height: 1.1em; width: 1.1em;" fill="currentColor">
+                    <use href="media/bootstrap-icons.svg#bounding-box" />
+                  </svg>
+                  <?php echo LANG['nav_fence']; ?>
+                </a></li>
+            <?php } ?>
+            <?php if (RECORDING_AVAILABLE) { ?>
+              <li><a id="recording_settings_nav_link" class="dropdown-item<?php echo LOCATION == 'recording_settings' ? ' active' : ''; ?> d-flex align-items-center" href="recording_settings.php">
+                  <svg class="bi me-2" style="height: 1.1em; width: 1.1em;" fill="currentColor">
+                    <use href="media/bootstrap-icons.svg#record-circle" />
+                  </svg>
+                  <?php echo LANG['nav_recording']; ?>
                 </a></li>
             <?php } ?>
             <li><a id="network_settings_nav_link" class="dropdown-item<?php echo LOCATION == 'network_settings' ? ' active' : ''; ?> d-flex align-items-center" href="network_settings.php">

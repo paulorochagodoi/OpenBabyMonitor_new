@@ -29,6 +29,39 @@ def read_settings(mode, config, database):
     return dict(zip(settings, values))
 
 
+def read_settings_if_available(table_prefix, config, database):
+    """
+    Reads a group of settings, returning None if the settings have not been
+    installed yet. This lets the modes keep working when an optional feature,
+    like the recording or the fence, is missing from the database.
+    """
+    table_name = table_prefix + '_settings'
+    if table_name not in config:
+        return None
+
+    settings = list(config[table_name].keys())
+    try:
+        with database as open_database:
+            if not open_database.table_exists(table_name):
+                return None
+            values = open_database.read_values_from_table(
+                table_name, settings)
+    except Exception:
+        return None
+
+    return dict(zip(settings, values))
+
+
+def table_is_available(table_name, config, database):
+    if table_name not in config:
+        return False
+    try:
+        with database as open_database:
+            return open_database.table_exists(table_name)
+    except Exception:
+        return False
+
+
 def read_setting(mode, setting, config, database):
     table_name = mode + '_settings'
     if table_name not in config:

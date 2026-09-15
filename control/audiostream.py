@@ -1,20 +1,33 @@
 #!/usr/bin/env python3
 
 import os
+import time
+import pathlib
 import subprocess
 import control
 import mic
+import recorder
 
 MODE = 'audiostream'
 
+# How long to wait for the stream to appear before giving up on recording it
+STREAM_WAIT_TIMEOUT = 30.0  # [s]
+STREAM_WAIT_INTERVAL = 0.5  # [s]
+
 
 def stream_audio():
-    control.enter_mode(
-        MODE, lambda mode, config, database: stream_audio_with_settings(
-            **control.read_settings(mode, config, database)))
+    control.enter_mode(MODE, run_audiostream_mode)
 
 
-def stream_audio_with_settings(encrypted=True,
+def run_audiostream_mode(mode, config, database):
+    stream_audio_with_settings(
+        recording_settings=control.read_settings_if_available(
+            'recording', config, database),
+        **control.read_settings(mode, config, database))
+
+
+def stream_audio_with_settings(recording_settings=None,
+                               encrypted=True,
                                gain=100,
                                sampling_rate=8000,
                                mp3_bitrate=128,
@@ -50,12 +63,48 @@ def stream_audio_with_settings(encrypted=True,
     control.signal_mode_started(MODE)
 
     with open(log_path, 'a') as log_file:
-        subprocess.check_call(
+        stream_process = subprocess.Popen(
             ['ffmpeg', '-hide_banner', '-loglevel', 'fatal'] + input_args +
             codec_args + stream_args + encryption_args + [output_file],
             stdout=subprocess.DEVNULL,
             stderr=log_file,
             cwd=output_dir)
+
+        stream_recorder = None
+        try:
+            # The recording copies the stream that is already being produced
+            if wait_for_stream(output_file, stream_process):
+                stream_recorder = recorder.create_audio_stream_recorder(
+                    recording_settings, output_file, log_path=log_path)
+                if stream_recorder is not None:
+                    stream_recorder.start()
+
+            return_code = stream_process.wait()
+            if return_code != 0:
+                raise subprocess.CalledProcessError(return_code, 'ffmpeg')
+        finally:
+            if stream_recorder is not None:
+                stream_recorder.stop()
+            if stream_process.poll() is None:
+                stream_process.terminate()
+                try:
+                    stream_process.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    stream_process.kill()
+                    stream_process.wait()
+
+
+def wait_for_stream(stream_file, stream_process):
+    path = pathlib.Path(stream_file)
+    elapsed_time = 0.0
+    while not path.exists():
+        if stream_process.poll() is not None:
+            return False
+        time.sleep(STREAM_WAIT_INTERVAL)
+        elapsed_time += STREAM_WAIT_INTERVAL
+        if elapsed_time > STREAM_WAIT_TIMEOUT:
+            return False
+    return True
 
 
 if __name__ == '__main__':

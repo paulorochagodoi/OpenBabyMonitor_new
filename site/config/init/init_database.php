@@ -46,12 +46,18 @@ echo "Storing password hash in database $db_name\n";
 createPasswordTableIfMissing($database, strlen($hashed_password));
 storeHashedPassword($database, $hashed_password);
 
-$table_names = array('modes', 'language', 'listen_settings', 'vox_settings', 'audiostream_settings', 'system_settings', 'videostream_settings');
+$table_names = array('modes', 'language', 'listen_settings', 'vox_settings', 'recording_settings', 'fence_settings', 'audiostream_settings', 'system_settings', 'videostream_settings');
 foreach ($table_names as $table_name) {
   echo "Creating table $table_name in database $db_name\n";
   createTableIfMissing($database, $table_name, readTableColumnsFromConfig($table_name));
   echo "Writing initial values to table $table_name in database $db_name\n";
   insertValuesIntoTable($database, $table_name, readTableInitialValuesFromConfig($table_name));
+}
+
+// Tables of many rows, which start out empty
+foreach (array('events') as $table_name) {
+  echo "Creating table $table_name in database $db_name\n";
+  createTableIfMissing($database, $table_name, readTableColumnsFromConfig($table_name, false));
 }
 
 foreach (array('known_networks') as $table_name) {

@@ -92,7 +92,7 @@ fi
 
 if [[ "$PURGE_DATABASE" = true ]]; then
     echo '==> Deleting the VOX settings from the database'
-    sudo php $BM_DIR/site/config/init/init_vox.php --drop
+    sudo php $BM_DIR/site/config/init/init_table.php vox_settings --drop
 fi
 
 if [[ "$UPDATE_CONFIG" = true ]]; then

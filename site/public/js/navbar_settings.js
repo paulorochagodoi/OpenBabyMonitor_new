@@ -14,6 +14,15 @@ $(function () {
     if (VOX_AVAILABLE) {
         connectModalToLink(VOX_SETTINGS_NAV_LINK_ID, Object.assign({}, VOX_SETTINGS_MODAL_BASE_PROPERTIES, { showModal: settingsFormHasChanged }), MODAL_ADDITIONAL_SETTER);
     }
+    if (FENCE_AVAILABLE) {
+        connectModalToLink(FENCE_SETTINGS_NAV_LINK_ID, Object.assign({}, FENCE_SETTINGS_MODAL_BASE_PROPERTIES, { showModal: settingsFormHasChanged }), MODAL_ADDITIONAL_SETTER);
+    }
+    if (RECORDING_AVAILABLE) {
+        connectModalToLink(RECORDING_SETTINGS_NAV_LINK_ID, Object.assign({}, RECORDING_SETTINGS_MODAL_BASE_PROPERTIES, { showModal: settingsFormHasChanged }), MODAL_ADDITIONAL_SETTER);
+    }
+    if (EVENTS_AVAILABLE) {
+        connectModalToLink(TIMELINE_NAV_LINK_ID, Object.assign({}, TIMELINE_MODAL_BASE_PROPERTIES, { showModal: settingsFormHasChanged }), MODAL_ADDITIONAL_SETTER);
+    }
     connectModalToLink(AUDIOSTREAM_SETTINGS_NAV_LINK_ID, Object.assign({}, AUDIOSTREAM_SETTINGS_MODAL_BASE_PROPERTIES, { showModal: settingsFormHasChanged }), MODAL_ADDITIONAL_SETTER);
     if (USES_CAMERA) {
         connectModalToLink(VIDEOSTREAM_SETTINGS_NAV_LINK_ID, Object.assign({}, VIDEOSTREAM_SETTINGS_MODAL_BASE_PROPERTIES, { showModal: settingsFormHasChanged }), MODAL_ADDITIONAL_SETTER);

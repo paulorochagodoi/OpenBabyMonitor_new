@@ -1,22 +1,43 @@
 #!/usr/bin/env python3
 
 import os
+import sys
+import time
+import pathlib
 import subprocess
 import control
 import mic
+import recorder
 
 MODE = 'videostream'
 HORIZONTAL_RESOLUTIONS = {480: 640, 720: 1280, 1080: 1920}
 
+# How long to wait for the camera to produce a stream before giving up on the
+# helpers that consume it
+STREAM_WAIT_TIMEOUT = 60.0  # [s]
+STREAM_WAIT_INTERVAL = 0.5  # [s]
+
 
 def stream_video():
-    control.enter_mode(
-        MODE, lambda mode, config, database: stream_video_with_settings(
-            **control.read_settings(mode, config, database),
-            **control.read_setting('audiostream', 'gain', config, database)))
+    control.enter_mode(MODE, run_video_mode)
 
 
-def stream_video_with_settings(encrypted=True,
+def run_video_mode(mode, config, database):
+    settings = control.read_settings(mode, config, database)
+    settings.update(
+        control.read_setting('audiostream', 'gain', config, database))
+    recording_settings = control.read_settings_if_available(
+        'recording', config, database)
+    fence_settings = control.read_settings_if_available(
+        'fence', config, database)
+    stream_video_with_settings(recording_settings=recording_settings,
+                               fence_settings=fence_settings,
+                               **settings)
+
+
+def stream_video_with_settings(recording_settings=None,
+                               fence_settings=None,
+                               encrypted=True,
                                vertical_resolution=720,
                                use_variable_framerate=True,
                                framerate=30,
@@ -94,13 +115,77 @@ def stream_video_with_settings(encrypted=True,
     control.signal_mode_started(MODE)
 
     with open(log_path, 'a') as log_file:
-        subprocess.check_call([os.path.join(picam_dir, 'picam')] +
-                              output_args + encryption_args + resolution_args +
-                              fps_args + orientation_args + brightness_args +
-                              color_args + audio_args + time_args,
-                              stdout=subprocess.DEVNULL,
-                              stderr=log_file,
-                              cwd=output_dir)
+        picam_process = subprocess.Popen(
+            [os.path.join(picam_dir, 'picam')] + output_args +
+            encryption_args + resolution_args + fps_args + orientation_args +
+            brightness_args + color_args + audio_args + time_args,
+            stdout=subprocess.DEVNULL,
+            stderr=log_file,
+            cwd=output_dir)
+
+        stream_recorder = None
+        fence_process = None
+        try:
+            # The recording and the fence both read the stream the camera
+            # produces, so they can only be started once it exists
+            if wait_for_stream(os.environ['BM_PICAM_STREAM_FILE'],
+                               picam_process):
+                stream_recorder = start_recorder(recording_settings, log_path)
+                fence_process = start_fence_monitor(fence_settings, log_file)
+
+            return_code = picam_process.wait()
+            if return_code != 0:
+                raise subprocess.CalledProcessError(return_code, 'picam')
+        finally:
+            if stream_recorder is not None:
+                stream_recorder.stop()
+            stop_process(fence_process)
+            stop_process(picam_process)
+
+
+def start_recorder(recording_settings, log_path):
+    stream_recorder = recorder.create_video_recorder(
+        recording_settings,
+        os.environ['BM_PICAM_STREAM_FILE'],
+        log_path=log_path)
+    if stream_recorder is not None:
+        stream_recorder.start()
+    return stream_recorder
+
+
+def start_fence_monitor(fence_settings, log_file):
+    if not fence_settings or not fence_settings.get('enabled', False):
+        return None
+    fence_path = pathlib.Path(__file__).resolve().parent / 'fence.py'
+    # Started through the interpreter so it does not depend on the file keeping
+    # its executable bit
+    return subprocess.Popen([sys.executable, str(fence_path)],
+                            stdout=subprocess.DEVNULL,
+                            stderr=log_file)
+
+
+def wait_for_stream(stream_file, picam_process):
+    path = pathlib.Path(stream_file)
+    elapsed_time = 0.0
+    while not path.exists():
+        if picam_process.poll() is not None:
+            return False
+        time.sleep(STREAM_WAIT_INTERVAL)
+        elapsed_time += STREAM_WAIT_INTERVAL
+        if elapsed_time > STREAM_WAIT_TIMEOUT:
+            return False
+    return True
+
+
+def stop_process(process):
+    if process is None or process.poll() is not None:
+        return
+    process.terminate()
+    try:
+        process.wait(timeout=5)
+    except subprocess.TimeoutExpired:
+        process.kill()
+        process.wait()
 
 
 if __name__ == '__main__':

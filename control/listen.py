@@ -13,6 +13,7 @@ sys.path.append(os.path.join(os.environ['BM_DIR'], 'detection'))
 import features
 import control
 import mic
+import events
 
 MODE = 'listen'
 
@@ -179,9 +180,14 @@ class QueueWorker:
 
 
 def listen():
-    control.enter_mode(
-        MODE, lambda mode, config, database: listen_with_settings(
-            config, **control.read_settings(mode, config, database)))
+    control.enter_mode(MODE, run_listen_mode)
+
+
+def run_listen_mode(mode, config, database):
+    listen_with_settings(config,
+                         recording_settings=control.read_settings_if_available(
+                             'recording', config, database),
+                         **control.read_settings(mode, config, database))
 
 
 def listen_with_settings(*args, model='large_network', **kwargs):
@@ -199,6 +205,7 @@ def listen_with_settings_sound_level_threshold(
         fraction_threshold=60,
         consecutive_recordings=5,
         min_notification_interval=180,
+        recording_settings=None,
         **kwargs):
     control_dir = pathlib.Path(os.environ['BM_DIR']) / 'control'
     comm_dir = control_dir / '.comm'
@@ -217,6 +224,9 @@ def listen_with_settings_sound_level_threshold(
         consecutive_recordings=consecutive_recordings,
         min_notification_interval=min_notification_interval)
 
+    event_log = events.create_event_log_from_config(
+        config, recording_settings, os.environ.get('BM_SERVER_LOG_PATH'))
+
     control.signal_mode_started(MODE)
 
     while True:
@@ -231,6 +241,9 @@ def listen_with_settings_sound_level_threshold(
 
         if notification is not None:
             write_notification(notification_file, notification)
+            if event_log is not None:
+                event_log.add(events.notification_to_event_type(notification),
+                              signal_sound_level, record_time)
 
         time.sleep(max(0, interval - (time.time() - last_start_time)))
 
@@ -248,6 +261,7 @@ def listen_with_settings_network(config,
                                  notify_on_crying=True,
                                  notify_and_or='or',
                                  notify_on_babbling=False,
+                                 recording_settings=None,
                                  **kwargs):
     control_dir = pathlib.Path(os.environ['BM_DIR']) / 'control'
 
@@ -259,7 +273,7 @@ def listen_with_settings_network(config,
              min_notification_interval=min_notification_interval,
              notify_on_crying=notify_on_crying,
              notify_and_or=notify_and_or,
-             notify_on_babbling=notify_on_babbling))
+             notify_on_babbling=notify_on_babbling), recording_settings)
 
     with worker as task_queue:
         mic.update_current_mic_volume(100)
@@ -283,10 +297,19 @@ def listen_with_settings_network(config,
             time.sleep(max(0, interval - (time.time() - last_start_time)))
 
 
-def process_features(task_queue, config, control_dir, model,
-                     notifier_settings):
+def process_features(task_queue,
+                     config,
+                     control_dir,
+                     model,
+                     notifier_settings,
+                     recording_settings=None):
 
     notifier = create_inference_notifier(config, **notifier_settings)
+
+    # The event log is created here rather than passed in, since this runs in a
+    # process of its own and needs its own database handle
+    event_log = events.create_event_log_from_config(
+        config, recording_settings, os.environ.get('BM_SERVER_LOG_PATH'))
 
     comm_dir = control_dir / '.comm'
     probabilities_file = comm_dir / 'probabilities.json'
@@ -322,6 +345,9 @@ def process_features(task_queue, config, control_dir, model,
 
         if notification is not None:
             write_notification(notification_file, notification)
+            if event_log is not None:
+                event_log.add(events.notification_to_event_type(notification),
+                              prev_signal_sound_level, prev_record_time)
 
 
 def find_probabilities(feature, ambient_probabilities, model):
