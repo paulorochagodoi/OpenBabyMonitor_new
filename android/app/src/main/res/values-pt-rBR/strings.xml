@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Babá eletrônica</string>
+
+    <string name="setup_title">Parear com o aparelho</string>
+    <string name="setup_description">O app fala só com a sua babá eletrônica, pela sua própria rede. Nada passa pelo servidor de ninguém.</string>
+    <string name="setup_host">Endereço do aparelho</string>
+    <string name="setup_host_default">babymonitor.local</string>
+    <string name="setup_port">Porta</string>
+    <string name="setup_password">Senha do monitor</string>
+    <string name="setup_device_name">Nome deste celular</string>
+    <string name="setup_pair">Parear</string>
+    <string name="setup_needs_password">Digite a senha do monitor.</string>
+    <string name="setup_needs_host">Digite o endereço do aparelho.</string>
+
+    <string name="fingerprint_title">Este é o seu aparelho?</string>
+    <string name="fingerprint_message">O aparelho se identifica com esta impressão digital:\n\n%1$s\n\nCompare com a que o install_app.sh imprimiu no Raspberry Pi. Se forem diferentes, outra coisa está respondendo neste endereço. Aceite só se forem iguais.</string>
+    <string name="fingerprint_accept">É igual</string>
+    <string name="fingerprint_reject">Cancelar</string>
+
+    <string name="error_unreachable">Não foi possível alcançar o aparelho. Verifique se o celular está na mesma rede e se o endereço está certo.</string>
+    <string name="error_certificate">O certificado não confere com o que este celular pareou. Só pareie de novo se foi você que o trocou.</string>
+    <string name="error_wrong_password">Senha errada.</string>
+    <string name="error_too_many">Tentativas demais. Espere quinze minutos.</string>
+    <string name="error_not_installed">O aparelho não tem o suporte ao app instalado. Rode o install_app.sh nele.</string>
+    <string name="error_needs_https">O aparelho respondeu sem criptografia. Use a porta https.</string>
+    <string name="error_server">O aparelho respondeu com erro.</string>
+
+    <string name="channel_service">Vigiando</string>
+    <string name="channel_service_description">A notificação silenciosa que fica visível enquanto o app vigia o monitor.</string>
+    <string name="channel_urgent">Alertas urgentes</string>
+    <string name="channel_urgent_description">Choro e movimento fora da cerca.</string>
+    <string name="channel_info">Outros alertas</string>
+    <string name="channel_info_description">Movimento, balbucio, adormecer e o resto.</string>
+
+    <string name="service_title">Babá eletrônica</string>
+    <string name="state_connecting">Conectando…</string>
+    <string name="state_watching">Vigiando · %1$s</string>
+    <string name="state_offline">Aparelho inalcançável, tentando de novo…</string>
+    <string name="state_unpaired">Não está mais pareado. Abra o app para parear de novo.</string>
+    <string name="state_certificate_changed">Parado: o certificado do aparelho mudou.</string>
+
+    <string name="mode_standby">em espera</string>
+    <string name="mode_listen">escutando</string>
+    <string name="mode_audiostream">transmitindo áudio</string>
+    <string name="mode_videostream">transmitindo vídeo</string>
+    <string name="mode_vox">VOX</string>
+    <string name="mode_unknown">modo desconhecido</string>
+
+    <string name="event_crying">A criança está chorando</string>
+    <string name="event_babbling">A criança está balbuciando</string>
+    <string name="event_sound">Som detectado</string>
+    <string name="event_transmission">O aparelho começou a transmitir</string>
+    <string name="event_motion">Movimento dentro da cerca</string>
+    <string name="event_outside">Movimento fora da cerca</string>
+    <string name="event_asleep">A criança parece estar dormindo</string>
+    <string name="event_awake">Movimento depois de um período parado</string>
+    <string name="event_rec_stopped">A gravação parou</string>
+    <string name="event_detail">às %1$s</string>
+    <string name="event_detail_with_value">às %1$s · %2$s %3$s</string>
+
+    <string name="settings_title">Configurações</string>
+    <string name="settings_alerts">Avisar sobre</string>
+    <string name="settings_pairing">Pareado com</string>
+    <string name="settings_pairing_info">%1$s\n\nCertificado:\n%2$s</string>
+    <string name="settings_battery">Permitir rodar em segundo plano</string>
+    <string name="settings_unpair">Desparear este celular</string>
+    <string name="unpair_title">Desparear?</string>
+    <string name="unpair_message">O app vai parar de vigiar e esquecer o token. O aparelho continua listando o pareamento até você revogá-lo lá.</string>
+    <string name="unpair_confirm">Desparear</string>
+    <string name="cancel">Cancelar</string>
+
+    <string name="menu_settings">Configurações</string>
+    <string name="menu_reload">Recarregar</string>
+    <string name="retry">Tentar de novo</string>
+    <string name="web_error">Não foi possível carregar a página do monitor.</string>
+    <string name="notification_permission_message">Sem permissão para enviar notificações o app não consegue avisar você.</string>
+</resources>

@@ -20,7 +20,8 @@ The purpose of this project is to make use of the great flexibility and availabi
 * Sound activated transmission (VOX): the monitor listens silently and starts streaming audio on its own as soon as the child makes a sound, then stops again after a period of silence.
 * Rolling recording with a timeline of what happened, so you can go back and hear or watch the moment the child started crying. The oldest part of the recording is deleted as new material is added, so it never fills up the card.
 * A virtual fence you draw over the camera image, which alerts you when something moves inside it or outside it, and tells you when the child has been still long enough to be asleep.
-* Low power consumption (see [Power consumption](#powe dr-consumption)), enabling tens of hours of battery life when powered by even a modestly sized portable power bank.
+* An Android app that notifies your phone when the monitor detects something, so you do not have to keep the page open. It talks straight to the Pi over your own network: no cloud service, no account, and nothing about your child leaves the house.
+* Low power consumption (see [Power consumption](#power-consumption)), enabling tens of hours of battery life when powered by even a modestly sized portable power bank.
 
 ## Equipment
 
@@ -79,7 +80,7 @@ In order to fit the Mini USB Microphone next to the Micro USB power plug on a Pi
 
 ### Adding the optional features to an existing installation
 
-The VOX mode, the recording with its timeline and the virtual fence are all included when the baby monitor is installed from scratch. If you are updating a baby monitor that was installed before they existed, connect to the Pi with SSH and install them all in one go:
+The VOX mode, the recording with its timeline, the virtual fence and the phone app support are all included when the baby monitor is installed from scratch. If you are updating a baby monitor that was installed before they existed, connect to the Pi with SSH and install them all in one go:
 
 ```
 cd ~/OpenBabyMonitor
@@ -95,6 +96,7 @@ chmod +x install_*.sh uninstall_*.sh
 | `install_vox.sh` | The [VOX mode](#basic-operation): a `bm_vox` service and a `vox_settings` table |
 | `install_recording.sh` | The [recording and the timeline](#recording-and-the-timeline): a place to keep the recordings, a `recording_settings` table and the event log |
 | `install_fence.sh` | The [virtual fence](#the-virtual-fence): a `fence_settings` table and the event log |
+| `install_app.sh` | The [phone app](#the-phone-app) support: an `app_tokens` table, the endpoints the app talks to, and the certificate fingerprint you pair with |
 
 Each script only adds what its own feature needs and leaves the rest of your installation and all your existing settings alone. They can safely be run again, for instance after a later update, and a feature that fails to install does not stop the others. All of them take `--no-packages` if the Pi has no internet access, and each has a matching `uninstall_*.sh`, including `uninstall_all.sh`, that takes `--purge` when you also want the stored settings and data gone.
 
@@ -186,6 +188,53 @@ While the device is streaming video it watches that area and reports:
 The fence analyzes the video the camera is already streaming rather than opening the camera itself, so you get the full live video and the fence at the same time. Frames are decoded at a low resolution and a few per second, which is enough for movement and cheap enough to run alongside the streaming.
 
 **What it cannot do:** the fence detects *movement*, not the child. A child lying perfectly still and an empty crib look exactly the same to it, so treat "asleep" as "nothing has moved in the fence for a while" and never as confirmation that the child is there and well. It is also blind in a dark room unless you use a NoIR camera with an infrared light.
+
+## The phone app
+
+The web application tells you about crying while you are looking at it. The app tells you while the phone is in your pocket.
+
+It is a small Android app that keeps one connection open to the Pi and raises a notification the moment the monitor reports something: crying, movement inside or outside the fence, the child falling asleep, the VOX mode starting to transmit. It also carries the full web interface in a web view, so the live video, the timeline and the settings are one tap away.
+
+### What it does not do
+
+**Nothing goes through anyone else's server.** There is no push service, no account, no topic anyone could subscribe to, and no third party that could read what your monitor detects. The consequence is that the phone has to be able to reach the Pi: on the home Wi-Fi it works, and away from home it works only through a VPN back into your network. If you need alerts from outside the house without a VPN, this app is the wrong tool.
+
+### Building the APK
+
+There is no app store release. The APK is built by the `Android app` workflow in this repository:
+
+1. Open the **Actions** tab, pick **Android app**, and run it (or just push a change under `android/`).
+2. Download the `babymonitor-apk` artifact from the finished run and unzip it.
+3. Copy `app-debug.apk` to the phone and open it. Android will ask you to allow installing from that source.
+
+The build is debug signed, which is fine for sideloading and means there is no signing key kept in the repository. To build it yourself instead, open the `android` directory in Android Studio. The app needs Android 10 or newer.
+
+### Pairing
+
+On the Pi:
+
+```
+./install_app.sh
+```
+
+It prints the fingerprint of the certificate the device serves. Keep that screen open.
+
+In the app, enter the address of the device (`babymonitor.local`), port 443 and the monitor password. The app then shows the fingerprint it received and asks you to confirm it. **Compare it with the one the Pi printed, character by character.** If it does not match, something other than your baby monitor is answering at that address, and you should not accept it.
+
+That comparison is the one thing nobody can do for you, and it is what makes everything afterwards safe.
+
+### How it stays private
+
+The Pi signs its own certificate, so there is no authority that can vouch for it. Rather than asking you to install a certificate authority on your phone and trusting anything it signs, the app remembers the exact certificate you paired with and refuses every other one, in the web view as much as in the background connection. A changed certificate stops the app rather than showing a warning you can click through.
+
+The password is typed once. In exchange the app gets a token, which it keeps in encrypted storage and excludes from cloud backup, and which only ever travels over that pinned connection. The Pi stores only a hash of it.
+
+Each phone gets its own token. Under `Settings` -> `System` in the web application you can see the paired phones and revoke any of them; a revoked phone stops watching within a minute and has to be paired again.
+
+### Keeping it running
+
+Android stops background work aggressively, which for this app means missing the alert it exists to deliver. Under `Settings` in the app, use **Allow running in the background** to exempt it from battery optimisation. The app holds the CPU awake while it is watching, so expect it to cost battery: it is meant for a phone on a charger overnight, and the switch at the top of the main screen turns the watching off when you do not need it.
+
 
 ## Power consumption
 

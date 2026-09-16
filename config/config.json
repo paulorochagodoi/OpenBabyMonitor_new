@@ -148,6 +148,23 @@
             "type": "FLOAT"
         }
     },
+    "app_tokens": {
+        "id": {
+            "type": "INT UNSIGNED AUTO_INCREMENT PRIMARY KEY"
+        },
+        "token_hash": {
+            "type": "CHAR(64) NOT NULL"
+        },
+        "device": {
+            "type": "VARCHAR(64) NOT NULL"
+        },
+        "created": {
+            "type": "DOUBLE NOT NULL"
+        },
+        "last_seen": {
+            "type": "DOUBLE NOT NULL"
+        }
+    },
     "listen_settings": {
         "interval": {
             "group": "recording",

@@ -29,5 +29,12 @@
     "timezone_changed": "Ny tidssone ble satt for serveren.",
     "hostname_changed": "Nytt vertsnavn ble satt for serveren.",
     "device_password_changed": "Nytt passord ble satt for serveren.",
-    "will_change_url": "Merk at dette nettstedet vil få en ny URL med det nye vertsnavnet."
+    "will_change_url": "Merk at dette nettstedet vil få en ny URL med det nye vertsnavnet.",
+    "paired_devices": "Sammenkoblede telefoner",
+    "paired_devices_description": "Telefoner som når denne enheten med appen. Å trekke tilbake en av dem stopper overvåkingen dens innen et minutt, og den må kobles sammen på nytt.",
+    "no_paired_devices": "Ingen telefon er koblet sammen ennå.",
+    "device": "Telefon",
+    "last_seen": "Sist sett",
+    "revoke": "Trekk tilbake",
+    "revoke_all": "Trekk tilbake alle"
 }

@@ -2,7 +2,7 @@
 #
 # Installs every optional feature at once on a baby monitor that has already
 # been set up with setup.sh: the VOX mode, the rolling recording with its
-# timeline, and the virtual fence.
+# timeline, the virtual fence, and the support the Android app needs.
 #
 # This is the same work the individual installers do, with the shared steps done
 # once instead of three times. It is safe to run more than once, and features
@@ -12,7 +12,7 @@
 #
 #   --dir <path>      Where to keep the recordings (default: <project>/recordings).
 #                     Point this at a USB drive to spare the memory card.
-#   --without <name>  Leave a feature out. Repeatable, one of: vox, recording, fence
+#   --without <name>  Leave a feature out. Repeatable, one of: vox, recording, fence, app
 #   --no-packages     Do not install system packages (use when offline)
 #   --no-database     Do not touch the database
 #   --no-restart      Do not restart the web server when finished
@@ -23,7 +23,7 @@ set -e
 SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
 source "$SCRIPT_DIR/config/install_common.sh"
 
-ALL_FEATURES='vox recording fence'
+ALL_FEATURES='vox recording fence app'
 
 INSTALL_PACKAGES=true
 INITIALIZE_DATABASE=true
@@ -35,7 +35,7 @@ print_usage() {
     echo 'Usage: ./install_all.sh [options]'
     echo
     echo '  --dir <path>      Where to keep the recordings (default: <project>/recordings)'
-    echo '  --without <name>  Leave a feature out. Repeatable, one of: vox, recording, fence'
+    echo '  --without <name>  Leave a feature out. Repeatable, one of: vox, recording, fence, app'
     echo '  --no-packages     Do not install system packages (use when offline)'
     echo '  --no-database     Do not touch the database'
     echo '  --no-restart      Do not restart the web server when finished'
@@ -172,6 +172,9 @@ for FEATURE in $SUCCEEDED; do
         ;;
     fence)
         echo '  Fence      draw it under Settings -> Fence while the observe mode is running'
+        ;;
+    app)
+        echo '  Phone app  pair it with the fingerprint printed above, under "app"'
         ;;
     esac
 done

@@ -7,7 +7,7 @@
 # Usage: ./uninstall_all.sh [options]
 #
 #   --purge           Also delete the settings, the events and the recordings
-#   --without <name>  Keep a feature. Repeatable, one of: vox, recording, fence
+#   --without <name>  Keep a feature. Repeatable, one of: vox, recording, fence, app
 #   --keep-config     Leave the entries in config/config.json
 #   --no-restart      Do not restart the web server when finished
 #   -h, --help        Show this help text
@@ -19,7 +19,7 @@ source "$SCRIPT_DIR/config/install_common.sh"
 
 # Removed in the opposite order to the installation, so the features that depend
 # on the event log go first
-ALL_FEATURES='fence recording vox'
+ALL_FEATURES='app fence recording vox'
 
 PURGE=false
 UPDATE_CONFIG=true
@@ -30,7 +30,7 @@ print_usage() {
     echo 'Usage: ./uninstall_all.sh [options]'
     echo
     echo '  --purge           Also delete the settings, the events and the recordings'
-    echo '  --without <name>  Keep a feature. Repeatable, one of: vox, recording, fence'
+    echo '  --without <name>  Keep a feature. Repeatable, one of: vox, recording, fence, app'
     echo '  --keep-config     Leave the entries in config/config.json'
     echo '  --no-restart      Do not restart the web server when finished'
     echo '  -h, --help        Show this help text'

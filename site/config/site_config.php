@@ -83,6 +83,10 @@ define('RECORDING_AVAILABLE', array_key_exists('recording_settings', $_CONFIG)
 define('FENCE_AVAILABLE', USES_CAMERA && array_key_exists('fence_settings', $_CONFIG)
   && tableExists($_DATABASE, 'fence_settings'));
 
+// The phone app is only offered once it has been installed with install_app.sh
+define('APP_AVAILABLE', array_key_exists('app_tokens', $_CONFIG)
+  && tableExists($_DATABASE, 'app_tokens'));
+
 if (isset($_COOKIE['color_scheme'])) {
   define('COLOR_SCHEME', $_COOKIE['color_scheme']);
 } else {

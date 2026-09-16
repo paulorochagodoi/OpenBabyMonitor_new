@@ -29,5 +29,12 @@
     "timezone_changed": "The server time zone was successfully changed.",
     "hostname_changed": "The server hostname was successfully changed.",
     "device_password_changed": "The server password was successfully changed.",
-    "will_change_url": "Note that this website will get a new URL with the new hostname."
+    "will_change_url": "Note that this website will get a new URL with the new hostname.",
+    "paired_devices": "Paired phones",
+    "paired_devices_description": "Phones that can reach this device with the app. Revoking one makes it stop watching within a minute, and it has to be paired again.",
+    "no_paired_devices": "No phone has been paired yet.",
+    "device": "Phone",
+    "last_seen": "Last seen",
+    "revoke": "Revoke",
+    "revoke_all": "Revoke all"
 }
