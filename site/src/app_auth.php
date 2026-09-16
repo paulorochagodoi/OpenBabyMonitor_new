@@ -36,13 +36,39 @@ function hashAppToken($token) {
 }
 
 /*
+Makes the name a phone gives for itself safe to store: no control or invisible
+characters, and no longer than the 64 characters the column holds.
+
+The counting is left to PCRE in UTF-8 mode rather than mbstring, which is not
+installed on every device and is not worth making a requirement for a label.
+Input that is not valid UTF-8 makes both patterns fail, and is cut by bytes
+instead.
+*/
+function sanitizeDeviceName($device) {
+  $device = trim($device);
+
+  $printable = preg_replace('/\p{C}/u', '', $device);
+  if ($printable !== null) {
+    $device = $printable;
+  }
+
+  if (preg_match('/^.{0,64}/us', $device, $matches) === 1) {
+    $device = $matches[0];
+  } else {
+    $device = substr($device, 0, 64);
+  }
+
+  return $device === '' ? 'Android' : $device;
+}
+
+/*
 Creates a token for a phone and returns it. This is the only time the token
 exists in readable form, so the caller has to pass it on to the phone right away.
 */
 function createAppToken($database, $device) {
   $token = bin2hex(random_bytes(APP_TOKEN_BYTES));
   $hash = hashAppToken($token);
-  $device = mb_substr($device, 0, 64);
+  $device = sanitizeDeviceName($device);
   $now = microtime(true);
 
   // The device name is whatever the phone calls itself, so it goes in as a
