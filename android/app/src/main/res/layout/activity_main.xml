@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimaryContainer" />
+
+    <LinearLayout
+        android:id="@+id/status_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorSurfaceVariant"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="10dp">
+
+        <View
+            android:id="@+id/status_dot"
+            android:layout_width="10dp"
+            android:layout_height="10dp"
+            android:background="@drawable/dot" />
+
+        <TextView
+            android:id="@+id/status_text"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_weight="1"
+            android:textAppearance="?attr/textAppearanceBodyMedium" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/monitoring_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <WebView
+            android:id="@+id/web"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <LinearLayout
+            android:id="@+id/web_error"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="24dp"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/web_error_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textAppearance="?attr/textAppearanceBodyLarge" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/web_retry"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/retry" />
+        </LinearLayout>
+    </FrameLayout>
+</LinearLayout>

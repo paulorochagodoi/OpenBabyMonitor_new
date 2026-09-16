@@ -5,9 +5,16 @@ show whether the child is moving or sleeping and raise an alert when something
 crosses the fence.
 */
 require_once(dirname(__DIR__) . '/config/path_config.php');
+require_once(SRC_DIR . '/session.php');
 require_once(dirname(__DIR__) . '/config/env_config.php');
 require_once(dirname(__DIR__) . '/config/error_config.php');
 require_once(SRC_DIR . '/sse.php');
+
+abortIfSessionExpired();
+// Whether the child is moving or sleeping is nobody else's business, but this
+// stream stays open for as long as the page does, and a request holding the
+// session file locked would block every other request from the same browser
+session_write_close();
 
 sendSSEHeaders();
 

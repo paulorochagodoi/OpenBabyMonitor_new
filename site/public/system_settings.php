@@ -2,8 +2,22 @@
 require_once(dirname(__DIR__) . '/config/site_config.php');
 redirectIfLoggedOut('index.php');
 require_once(SRC_DIR . '/settings.php');
+if (APP_AVAILABLE) {
+  require_once(SRC_DIR . '/app_auth.php');
+}
 
 $mode = readCurrentMode($_DATABASE);
+
+// Revoking a phone takes effect on its next request, which is at most a minute
+// away while it is watching
+if (APP_AVAILABLE) {
+  if (isset($_POST['revoke_device'])) {
+    revokeAppToken($_DATABASE, $_POST['revoke_device']);
+  } elseif (isset($_POST['revoke_all_devices'])) {
+    revokeAllAppTokens($_DATABASE);
+  }
+  $paired_devices = readAppDevices($_DATABASE);
+}
 
 $current_timezone = getenv('BM_TIMEZONE');
 $timezones = getValidTimezones();
@@ -156,6 +170,39 @@ if ($settings_edited) {
                 </div>
               </form>
             </div>
+            <?php if (APP_AVAILABLE) { ?>
+              <div class="col-auto">
+                <h2><?php echo LANG['paired_devices']; ?></h2>
+                <p style="max-width: 24rem;"><?php echo LANG['paired_devices_description']; ?></p>
+                <?php if (empty($paired_devices)) { ?>
+                  <p class="fst-italic"><?php echo LANG['no_paired_devices']; ?></p>
+                <?php } else { ?>
+                  <form action="" method="post">
+                    <table class="table align-middle" style="max-width: 30rem;">
+                      <thead>
+                        <tr>
+                          <th scope="col"><?php echo LANG['device']; ?></th>
+                          <th scope="col"><?php echo LANG['last_seen']; ?></th>
+                          <th scope="col"></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <?php foreach ($paired_devices as $device) { ?>
+                          <tr>
+                            <td><?php echo htmlspecialchars($device['device'], ENT_QUOTES); ?></td>
+                            <td><?php echo date('d.m.Y H:i', intval($device['last_seen'])); ?></td>
+                            <td class="text-end">
+                              <button type="submit" name="revoke_device" class="btn btn-outline-danger btn-sm" value="<?php echo intval($device['id']); ?>"><?php echo LANG['revoke']; ?></button>
+                            </td>
+                          </tr>
+                        <?php } ?>
+                      </tbody>
+                    </table>
+                    <button type="submit" name="revoke_all_devices" class="btn btn-outline-danger btn-sm" value="1"><?php echo LANG['revoke_all']; ?></button>
+                  </form>
+                <?php } ?>
+              </div>
+            <?php } ?>
           </div>
         </div>
       </main>
