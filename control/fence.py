@@ -56,7 +56,7 @@ class FrameSource:
     """
     Decodes the live stream into small grayscale frames.
     """
-    def __init__(self, source_playlist, framerate=4, log_path=None):
+    def __init__(self, source_playlist, framerate=1, log_path=None):
         self.source_playlist = str(source_playlist)
         self.framerate = framerate
         self.log_path = log_path
@@ -74,6 +74,13 @@ class FrameSource:
             '-1',
             '-allowed_extensions',
             'ALL',
+            # Only the keyframes are decoded, which the camera produces about
+            # once a second. Decoding every frame of the stream just to throw
+            # most of them away would keep a core of the Pi busy.
+            '-threads',
+            '1',
+            '-skip_frame',
+            'nokey',
             '-i',
             self.source_playlist,
             '-an',
@@ -169,6 +176,7 @@ class MotionDetector:
         # A high sensitivity means a small change is enough to count as movement
         self.pixel_threshold = max(3, int(round(3 + (100 - sensitivity) * 0.4)))
         self.previous_frame = None
+        self.previous_raw_frame = None
 
     def reset(self):
         """
@@ -176,8 +184,16 @@ class MotionDetector:
         not compared against something from before it and read as movement.
         """
         self.previous_frame = None
+        self.previous_raw_frame = None
 
     def __call__(self, frame):
+        # Only keyframes are decoded, so when the frames are asked for faster
+        # than keyframes arrive the same one is repeated. A repeat says nothing
+        # about movement and would only read as a moment of perfect stillness.
+        if self.previous_raw_frame is not None and np.array_equal(
+                frame, self.previous_raw_frame):
+            return None
+        self.previous_raw_frame = frame
         blurred_frame = cv2.GaussianBlur(frame, (5, 5), 0)
         if self.previous_frame is None:
             self.previous_frame = blurred_frame
@@ -300,7 +316,7 @@ def watch_fence():
         sleep_delay=float(fence_settings.get('sleep_delay', 120)),
         min_alert_interval=float(fence_settings.get('min_alert_interval', 60)))
 
-    framerate = int(fence_settings.get('analysis_framerate', 4))
+    framerate = int(fence_settings.get('analysis_framerate', 1))
 
     register_termination_handler()
 

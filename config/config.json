@@ -81,7 +81,7 @@
         }
     },
     "control": {
-        "file_query_interval": 1e-2,
+        "file_query_interval": 0.1,
         "socket_query_interval": 0.2,
         "mode_switch_timeout": 30.0,
         "server_actions": {
@@ -570,7 +570,7 @@
             "group": "detection",
             "name": "analysis_framerate",
             "type": "INT UNSIGNED NOT NULL",
-            "initial_value": 4,
+            "initial_value": 1,
             "range": {
                 "min": 1,
                 "max": 10,

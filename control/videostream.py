@@ -11,6 +11,8 @@ import recorder
 
 MODE = 'videostream'
 HORIZONTAL_RESOLUTIONS = {480: 640, 720: 1280, 1080: 1920}
+# Frames between two keyframes when the framerate is variable
+VARIABLE_FRAMERATE_GOP_SIZE = 30
 
 # How long to wait for the camera to produce a stream before giving up on the
 # helpers that consume it
@@ -74,6 +76,13 @@ def stream_video_with_settings(recording_settings=None,
 
     fps_args = ['--vfr'] if use_variable_framerate else [
         '--fps', str(framerate)
+    ]
+    # The fence only decodes keyframes, so ask for about one every second. With
+    # a variable framerate the camera aims for 30 frames per second.
+    fps_args += [
+        '--gopsize',
+        str(VARIABLE_FRAMERATE_GOP_SIZE if use_variable_framerate else
+            max(1, int(framerate)))
     ]
 
     orientation_args = ['--rotation', str(rotation)]
