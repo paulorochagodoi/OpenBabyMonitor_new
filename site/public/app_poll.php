@@ -23,7 +23,6 @@ require_once(SRC_DIR . '/app_auth.php');
 // that the phone notices a dead connection reasonably quickly, and so that no
 // proxy or timeout in between decides to cut it first.
 define('APP_POLL_TIMEOUT', 50.0); // [s]
-define('APP_POLL_INTERVAL', 200000); // [microseconds]
 
 define('APP_MAX_EVENTS', 100);
 
@@ -122,11 +121,21 @@ if (is_dir($signal_dir)) {
 }
 
 $deadline = microtime(true) + APP_POLL_TIMEOUT;
-while (microtime(true) < $deadline) {
-  if (inotify_read($inotify_instance) !== false) {
+while (($remaining = $deadline - microtime(true)) > 0) {
+  $read = array($inotify_instance);
+  $write = null;
+  $except = null;
+  $seconds = intval($remaining);
+  $microseconds = intval(($remaining - $seconds) * 1e6);
+  $n_ready = @stream_select($read, $write, $except, $seconds, $microseconds);
+  if ($n_ready === false) {
     break;
   }
-  usleep(APP_POLL_INTERVAL);
+  // Something being readable is not a promise that it still is, so only stop
+  // waiting once an event has actually been read
+  if ($n_ready > 0 && inotify_read($inotify_instance) !== false) {
+    break;
+  }
 }
 
 fclose($inotify_instance);
