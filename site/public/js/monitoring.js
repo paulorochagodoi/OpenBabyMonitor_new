@@ -114,15 +114,14 @@ function handleOverheatEvent(event) {
 }
 
 function handleMonitoringErrorEvent(event) {
-    switch (event.target.readyState) {
-        case EventSource.CONNECTING:
-            break
-        case EventSource.CLOSED:
-            _MONITORING_EVENT_SOURCE = null;
-            break
-        default:
-            triggerErrorEvent(new Error('SSE stream failed: ' + event.data));
-            _MONITORING_EVENT_SOURCE.close();
-            _MONITORING_EVENT_SOURCE = null;
+    // Transport errors reconnect natively. Only an explicit server error message
+    // should close an otherwise open stream.
+    if (typeof event.data === 'string') {
+        event.target.close();
+        _MONITORING_EVENT_SOURCE = null;
+        triggerErrorEvent(new Error('SSE stream failed: ' + event.data));
+    } else if (event.target.readyState === EventSource.CLOSED) {
+        // Respect terminal closure (for example an HTTP 204 response).
+        _MONITORING_EVENT_SOURCE = null;
     }
 }

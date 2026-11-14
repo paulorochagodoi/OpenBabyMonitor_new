@@ -25,6 +25,7 @@ require_once(SRC_DIR . '/app_auth.php');
 define('APP_POLL_TIMEOUT', 50.0); // [s]
 
 define('APP_MAX_EVENTS', 100);
+define('APP_POLL_FALLBACK_INTERVAL', 2); // [s]
 
 requireAppToken($_DATABASE);
 
@@ -105,10 +106,12 @@ if (!empty($events) || !$should_wait || !is_dir($comm_dir)) {
   respond($_DATABASE, $fence_file, $now, $events);
 }
 
-$inotify_instance = inotify_init();
+$inotify_instance = @inotify_init();
 if (!$inotify_instance) {
-  // Without inotify the phone falls back to asking again in a moment
-  respond($_DATABASE, $fence_file, $now, array());
+  // Successful responses do not trigger Android's error backoff. Pace them
+  // here, and read again after waiting so events during the wait are included.
+  sleep(APP_POLL_FALLBACK_INTERVAL);
+  respondWithEvents($_DATABASE, $fence_file, $since);
 }
 stream_set_blocking($inotify_instance, false);
 
