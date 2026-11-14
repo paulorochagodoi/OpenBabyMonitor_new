@@ -167,16 +167,15 @@ function updateInfoLabel(backgroundSoundLevel, foregroundContrast, recordTime) {
 }
 
 function handleListenErrorEvent(event) {
-    switch (event.target.readyState) {
-        case EventSource.CONNECTING:
-            break
-        case EventSource.CLOSED:
-            _LISTEN_EVENT_SOURCE = null;
-            break
-        default:
-            triggerErrorEvent(new Error('SSE stream failed: ' + event.data));
-            _LISTEN_EVENT_SOURCE.close();
-            _LISTEN_EVENT_SOURCE = null;
+    // Transport errors reconnect natively. Only an explicit server error message
+    // should close an otherwise open stream.
+    if (typeof event.data === 'string') {
+        event.target.close();
+        _LISTEN_EVENT_SOURCE = null;
+        triggerErrorEvent(new Error('SSE stream failed: ' + event.data));
+    } else if (event.target.readyState === EventSource.CLOSED) {
+        // Respect terminal closure (for example an HTTP 204 response).
+        _LISTEN_EVENT_SOURCE = null;
     }
 }
 
