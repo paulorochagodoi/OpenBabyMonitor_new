@@ -12,7 +12,11 @@ $path = dirname(__DIR__, 2) . '/control/.comm/health.json';
 $health = json_decode(@file_get_contents($path), true);
 $valid = is_array($health) && isset($health['ts'], $health['ok'], $health['mode'], $health['interval_s'])
   && is_numeric($health['ts']) && is_numeric($health['interval_s']) && $health['interval_s'] > 0;
-$stale = !$valid || time() - $health['ts'] > 3 * $health['interval_s'] || $health['ts'] > time();
+// microtime: health.json carries fractional seconds, so comparing with the
+// integer time() flagged a fresh file as from the future within its first second.
+define('HEALTH_MAX_CLOCK_SKEW', 5); // [s]
+$now = microtime(true);
+$stale = !$valid || $now - $health['ts'] > 3 * $health['interval_s'] || $health['ts'] > $now + HEALTH_MAX_CLOCK_SKEW;
 if (!$valid) {
   $health = array('ok' => false, 'ts' => null, 'mode' => 'unknown');
 }
