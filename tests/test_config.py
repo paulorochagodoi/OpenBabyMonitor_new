@@ -32,3 +32,5 @@ def test_repository_config_can_be_read_outside_project_directory(
     config = config_module.read_config()
     assert config['modes']['current']['values']['vox']['value'] == 4
     assert 'database' in config
+    assert config['watchdog']['enabled'] is False
+    assert config['watchdog']['failure_count'] == 3

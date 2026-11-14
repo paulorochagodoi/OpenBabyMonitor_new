@@ -1004,5 +1004,19 @@
     "system_groups": {
         "browser_notifications": "g_browser_notifications",
         "monitoring": "g_monitoring"
+    },
+    "watchdog": {
+        "enabled": false,
+        "interval_s": 10,
+        "timeout_s": 3,
+        "apache_url": "https://localhost",
+        "cpu_temp_max_c": 80,
+        "disk_max_pct": 90,
+        "mem_max_pct": 95,
+        "hls_max_age_s": 30,
+        "failure_count": 3,
+        "restart_limit": 3,
+        "restart_window_s": 900,
+        "backoff_s": 30
     }
 }
