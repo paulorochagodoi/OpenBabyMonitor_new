@@ -1018,5 +1018,52 @@
         "restart_limit": 3,
         "restart_window_s": 900,
         "backoff_s": 30
+    },
+    "home_assistant": {
+        "enabled": {
+            "initial_value": false
+        },
+        "host": {
+            "initial_value": ""
+        },
+        "port": {
+            "initial_value": 1883
+        },
+        "tls": {
+            "initial_value": false
+        },
+        "ca_file": {
+            "initial_value": ""
+        },
+        "discovery_prefix": {
+            "initial_value": "homeassistant"
+        },
+        "base_topic": {
+            "initial_value": "babymonitor"
+        },
+        "device_id": {
+            "initial_value": "baba"
+        },
+        "heartbeat_interval": {
+            "initial_value": 30
+        },
+        "event_timeout": {
+            "initial_value": 30
+        },
+        "snapshot_enabled": {
+            "initial_value": false
+        },
+        "snapshot_interval": {
+            "initial_value": 30
+        },
+        "snapshot_max_bytes": {
+            "initial_value": 262144
+        },
+        "mode_command_enabled": {
+            "initial_value": false
+        },
+        "secrets_file": {
+            "initial_value": "/home/pi/.config/babymonitor/mqtt.env"
+        }
     }
 }
