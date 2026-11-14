@@ -1,0 +1,44 @@
+name: Regression baseline
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  php-lint:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.3' # Raspbian Buster baseline
+          coverage: none
+      - name: Lint every PHP file
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            php -l "$file"
+          done < <(find . -type f -name '*.php' -not -path './.git/*' -print0)
+
+  python:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.7'
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - name: Compile Python sources without importing hardware dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            python -m py_compile "$file"
+          done < <(find control detection config -type f -name '*.py' -print0)
+      - name: Install test dependencies
+        run: python -m pip install -r requirements-dev.txt
+      - name: Run regression tests
+        run: python -m pytest -q tests
