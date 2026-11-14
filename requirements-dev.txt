@@ -1,0 +1,2 @@
+# Last pytest series supporting Python 3.7; production dependencies are not needed.
+pytest==7.4.4
