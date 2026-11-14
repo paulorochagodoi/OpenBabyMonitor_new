@@ -71,11 +71,34 @@ foreach (array_keys(MODE_VALUES) as $mode_name) {
   $descriptors[$mode_name] = inotify_add_watch($inotify_instance, $signal_file, IN_ATTRIB);
 }
 
+// Keep the existing ping event (used by the client's connection checker),
+// while bounding each request so EventSource periodically reconnects.
+define('MONITORING_MAX_LIFETIME', 300); // [s]
+
+@set_time_limit(MONITORING_MAX_LIFETIME + 2 * PING_INTERVAL);
+
+$end_time = microtime(true) + MONITORING_MAX_LIFETIME;
 $last_vitals_query_time = queryVitals();
 $last_ping_time = sendPing();
 
-while (!connection_aborted()) {
-  $events = inotify_read($inotify_instance);
+while (!connection_aborted() && microtime(true) < $end_time) {
+  $read = array($inotify_instance);
+  $write = null;
+  $except = null;
+  // Wake for file changes or the next scheduled message, whichever comes first.
+  $next_wakeup_time = min($end_time,
+    $last_vitals_query_time + $_VITALS_QUERY_INTERVAL,
+    $last_ping_time + PING_INTERVAL);
+  $timeout_microsec = (int) max(0, ($next_wakeup_time - microtime(true)) * 1e6);
+  $timeout = intdiv($timeout_microsec, 1000000);
+  $n_ready = @stream_select($read, $write, $except, $timeout, $timeout_microsec % 1000000);
+  if ($n_ready === false) {
+    break;
+  }
+  if (microtime(true) >= $end_time) {
+    break;
+  }
+  $events = $n_ready > 0 ? inotify_read($inotify_instance) : false;
   if ($events !== false) {
     foreach ($events as $event) {
       foreach ($descriptors as $mode_name => $descriptor) {
@@ -85,7 +108,6 @@ while (!connection_aborted()) {
       }
     }
   }
-  usleep(MODE_QUERY_INTERVAL_MICROSEC);
 
   if (microtime(true) - $last_vitals_query_time >= $_VITALS_QUERY_INTERVAL) {
     $last_vitals_query_time = queryVitals();
