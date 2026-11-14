@@ -11,6 +11,8 @@ The purpose of this project is to make use of the great flexibility and availabi
 
 ## Features
 
+Acesso fora de casa (opcional): [comparação e VPN](docs/remote-access.md) e [ponte Home Assistant](docs/home-assistant.md).
+
 * Fully DIY and open source. Simply obtain a Raspberry Pi and a few peripherals (see [Equipment](#equipment)), download one of the pre-built disk images and install it on the Pi (see [Installation](#installation)).
 * Controlled through a web browser from any device on the local network. No special reciever required, and no client software to install.
 * The web application is available in English, Norwegian and Brazilian Portuguese, selectable from the navigation menu.
